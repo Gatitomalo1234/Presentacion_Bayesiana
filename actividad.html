@@ -213,16 +213,11 @@ wizardSheet.src = 'mago.png';
 let wizardLoaded = false;
 wizardSheet.onload = () => { wizardLoaded = true; };
 
-// Mapeo de la hoja de sprites (basado en la imagen de referencia)
-// Nota: Usamos proporciones para extraer los frames individuales
+// Mapeo de la hoja de sprites profesional (Grilla limpia de 32x32)
 const WIZ_ANIMS = {
-    idle: { y: 345, x: 145, step: 135, frames: 4, w: 90, h: 110 },
-    walk: { y: 490, x: 145, step: 135, frames: 6, w: 90, h: 110 },
-    cast: { y: 640, x: 145, step: 165, frames: 4, w: 120, h: 110 },
-    down: { x: 120, y: 855, w: 90, h: 110 },
-    left: { x: 250, y: 855, w: 90, h: 110 },
-    right: { x: 380, y: 855, w: 90, h: 110 },
-    up: { x: 510, y: 855, w: 90, h: 110 }
+    idle: { y: 0, x: 0, step: 32, frames: 4, w: 32, h: 32 },
+    walk: { y: 64, x: 0, step: 32, frames: 6, w: 32, h: 32 },
+    cast: { y: 96, x: 0, step: 32, frames: 4, w: 32, h: 32 }
 };
 
 /* === AUDIO SYSTEM === */
@@ -798,15 +793,15 @@ const player = {
             const sy = anim.y;
             const sw = anim.w;
             const sh = anim.h;
-            const dw = 48, dh = 58;
+            const dw = 42, dh = 42; // Tamaño ajustado para 32x32
 
             ctx.save();
             if(this.dir === -1) {
                 ctx.translate(this.x - cx, 0);
                 ctx.scale(-1, 1);
-                ctx.drawImage(wizardSheet, sx, sy, sw, sh, -dw/2, this.y - cy - dh + 5, dw, dh);
+                ctx.drawImage(wizardSheet, sx, sy, sw, sh, -dw/2, this.y - cy - dh + 8, dw, dh);
             } else {
-                ctx.drawImage(wizardSheet, sx, sy, sw, sh, this.x - cx - dw/2, this.y - cy - dh + 5, dw, dh);
+                ctx.drawImage(wizardSheet, sx, sy, sw, sh, this.x - cx - dw/2, this.y - cy - dh + 8, dw, dh);
             }
             ctx.restore();
         }
