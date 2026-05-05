@@ -791,7 +791,17 @@ const player = {
 
         const bob = this.moving ? (Math.floor(this.animTimer)%2 === 0 ? 0 : 2) : 0;
 
-        if(!wizardLoaded) {
+        if(wizardPruebaLoaded) {
+            const dw = 48, dh = 58;
+            ctx.save();
+            if(this.dir === -1) {
+                ctx.translate(this.x - cx, 0); ctx.scale(-1, 1);
+                ctx.drawImage(wizardPrueba, -dw/2, this.y - cy - dh + 8, dw, dh);
+            } else {
+                ctx.drawImage(wizardPrueba, this.x - cx - dw/2, this.y - cy - dh + 8, dw, dh);
+            }
+            ctx.restore();
+        } else if(!wizardLoaded) {
             const frame = (Math.floor(this.animTimer) % 2 === 0) ? SPRITES.wizard : SPRITES.wizard_walk;
             renderSprite(ctx, frame, this.x - cx, this.y - cy - bob, this.dir === -1);
         } else {
