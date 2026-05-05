@@ -293,13 +293,24 @@ function emitParticles(x, y, count, colors) {
 }
 
 function spawnDust(p) {
-    p.active = true; p.type = 'dust';
+    p.active = true;
     const def = LEVEL_DEFS[currentLevelId];
+    p.type = def.pType || 'dust';
     p.x = Math.random() * def.mapW * TSIZE;
     p.y = Math.random() * def.mapH * TSIZE;
-    p.vx = -10 + Math.random()*20; p.vy = -15 + Math.random()*10;
+    
+    if(p.type === 'lava') {
+        p.vx = (Math.random()-0.5)*15; p.vy = -20 - Math.random()*30;
+        p.color = Math.random() > 0.5 ? '#ef4444' : '#fbbf24';
+    } else if(p.type === 'magic') {
+        p.vx = (Math.random()-0.5)*40; p.vy = (Math.random()-0.5)*40;
+        p.color = Math.random() > 0.5 ? '#a855f7' : '#fff';
+    } else {
+        p.vx = -10 + Math.random()*20; p.vy = -15 + Math.random()*10;
+        p.color = '#ffffff';
+    }
     p.life = 2 + Math.random() * 3; p.maxLife = p.life;
-    p.color = '#ffffff'; p.size = 1 + Math.random();
+    p.size = 1 + Math.random();
 }
 
 function updateParticles(dt) {
@@ -473,6 +484,7 @@ const LEVEL_DEFS = {
         name: 'Sala de los Sabios',
         mapW: 30, mapH: 20,
         f0: '#1e1e24', f1: '#2a2a30', wall: '#15151a',
+        light: 'rgba(255,160,40,0.15)', pType: 'magic',
         playerStart: {x: 480, y: 500},
         entities: [
             { type:'door', target:'level1', x:160, y:140, r:40, color:'#38bdf8', label:'I. El Problema' },
@@ -483,7 +495,6 @@ const LEVEL_DEFS = {
             { type:'door', target:'dragon', x:480, y:64, r:50, color:'#fff', label:'Sala del Dragón (5 Gemas)', requiresAll:true }
         ],
         decor: (ctx, scx, scy) => {
-            // Alfombra roja
             ctx.fillStyle = '#3a1010';
             ctx.fillRect(480 - 64 - scx, 120 - scy, 128, 400);
             ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
@@ -493,6 +504,7 @@ const LEVEL_DEFS = {
     level1: {
         name: 'I. El Problema', mapW: 24, mapH: 16,
         f0: '#131e28', f1: '#192436', wall: '#1e2d40',
+        light: 'rgba(56,189,248,0.18)', pType: 'dust',
         playerStart: {x: 384, y: 400},
         outliers: [],
         init: function() {
@@ -523,8 +535,7 @@ const LEVEL_DEFS = {
         ],
         decor: (ctx, scx, scy) => {
             const pts = [[300,150,'#38bdf8'],[320,130,'#38bdf8'],[310,180,'#38bdf8'],
-                         [450,200,'#a855f7'],[470,220,'#a855f7'],[440,250,'#a855f7'],
-                         [400,100,'#10b981'],[420,80,'#10b981'],[430,120,'#10b981']];
+                         [450,200,'#a855f7'],[470,220,'#a855f7'],[440,250,'#a855f7']];
             pts.forEach(p => {
                 ctx.fillStyle = p[2]; ctx.beginPath(); ctx.arc(p[0]-scx, p[1]-scy, 4, 0, Math.PI*2); ctx.fill();
             });
@@ -537,12 +548,11 @@ const LEVEL_DEFS = {
     level2: {
         name: 'II. Pooling', mapW: 24, mapH: 16,
         f0: '#111', f1: '#111', wall: '#222',
+        light: 'rgba(168,85,247,0.15)', pType: 'dust',
         playerStart: {x: 384, y: 400},
         plates: [{x:160,y:200,on:false},{x:384,y:100,on:false},{x:600,y:200,on:false}],
         init: function() {
             this.plates.forEach(p => p.on = false);
-            const gem = activeEntities.find(e => e.id === 'gem2');
-            if(gem) gem.active = false;
         },
         update: function(dt) {
             let allOn = true;
@@ -551,76 +561,52 @@ const LEVEL_DEFS = {
                 if(!p.on) allOn = false;
             });
             const gem = activeEntities.find(e => e.id === 'gem2');
-            if(gem) gem.active = allOn || gems.gem2; // Keep active if allOn or already opened
+            if(gem) gem.active = allOn || gems.gem2;
         },
         entities: [
             { type:'chest', id:'gem2', x:384, y:240, r:30, title:'Pooling', 
-              text:'¿Cuál es el problema principal del enfoque de "No-Pooling" cuando analizamos grupos con pocos datos (ej. n=5)?',
-              opts: [{t:'Asume que todos los grupos son idénticos.',c:0},{t:'Genera estimaciones con alta varianza al no compartir información.',c:1},{t:'Ignora la variable predictora.',c:0}] },
+              text:'¿Cuál es el problema principal del enfoque de "No-Pooling" cuando analizamos grupos con pocos datos?',
+              opts: [{t:'Asume que todos los grupos son idénticos.',c:0},{t:'Genera estimaciones con alta varianza al no compartir información.',c:1}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
         ],
         decor: (ctx, scx, scy) => {
-            ctx.fillStyle = '#1a0f1f'; ctx.fillRect(0 - scx, 0 - scy, 8*TSIZE, 16*TSIZE);
-            ctx.fillStyle = '#0f1a15'; ctx.fillRect(8*TSIZE - scx, 0 - scy, 8*TSIZE, 16*TSIZE);
-            ctx.fillStyle = '#1a120a'; ctx.fillRect(16*TSIZE - scx, 0 - scy, 8*TSIZE, 16*TSIZE);
-            
             const def = LEVEL_DEFS['level2'];
             def.plates.forEach(p => {
                 ctx.fillStyle = p.on ? '#a855f7' : '#333';
                 ctx.fillRect(p.x-16-scx, p.y-16-scy, 32, 32);
-                ctx.strokeStyle = '#fff'; ctx.strokeRect(p.x-16-scx, p.y-16-scy, 32, 32);
             });
-            
-            if(!def.plates.every(p=>p.on)) {
-                ctx.fillStyle = 'rgba(168,85,247,0.3)';
-                ctx.beginPath(); ctx.arc(384-scx, 240-scy, 45, 0, Math.PI*2); ctx.fill();
-            }
         }
     },
     level3: {
         name: 'III. Jerárquico', mapW: 24, mapH: 16,
         f0: '#130c22', f1: '#180e28', wall: '#1a0d30',
+        light: 'rgba(16,185,129,0.15)', pType: 'magic',
         playerStart: {x: 384, y: 400},
-        walls: [
-            {x:250, y:120, w:60, h:180}, {x:458, y:120, w:60, h:180},
-            {x:344, y:280, w:80, h:60}
-        ],
+        walls: [{x:250, y:120, w:60, h:180}, {x:458, y:120, w:60, h:180}],
         init: function() {},
         update: function(dt) {
             const px = player.x; const py = player.y; const r = 12;
             this.walls.forEach(w => {
                 if(px > w.x - r && px < w.x + w.w + r && py > w.y - r && py < w.y + w.h + r) {
-                    const distL = Math.abs(px - (w.x - r));
-                    const distR = Math.abs(px - (w.x + w.w + r));
-                    const distT = Math.abs(py - (w.y - r));
-                    const distB = Math.abs(py - (w.y + w.h + r));
-                    const m = Math.min(distL, distR, distT, distB);
-                    if(m === distL) player.x -= 2; if(m === distR) player.x += 2;
-                    if(m === distT) player.y -= 2; if(m === distB) player.y += 2;
+                    player.x = player.oldX || player.x; player.y = player.oldY || player.y;
                 }
             });
         },
         entities: [
             { type:'chest', id:'gem3', x:384, y:120, r:30, title:'Modelo Jerárquico', 
-              text:'En la fórmula α_j ~ N(μ_α, σ_α), ¿qué representan μ_α y σ_α?',
-              opts: [{t:'La media y dispersión de la distribución poblacional de interceptos.',c:1},{t:'El error de medición individual.',c:0}] },
+              text:'En α_j ~ N(μ_α, σ_α), ¿qué representan μ_α y σ_α?',
+              opts: [{t:'La población de interceptos.',c:1},{t:'El error individual.',c:0}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
         ],
         decor: (ctx, scx, scy) => {
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.arc(384-scx, 240-scy, 80, 0, Math.PI*2); ctx.stroke();
-            
-            const def = LEVEL_DEFS['level3'];
-            ctx.fillStyle = '#0f081c'; ctx.strokeStyle = '#2d1b4e'; ctx.lineWidth = 2;
-            def.walls.forEach(w => {
-                ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
-                ctx.strokeRect(w.x-scx, w.y-scy, w.w, w.h);
-            });
+            ctx.fillStyle = '#0f081c';
+            LEVEL_DEFS['level3'].walls.forEach(w => ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h));
         }
     },
     level4: {
         name: 'IV. Shrinkage', mapW: 24, mapH: 16,
         f0: '#1a1200', f1: '#1f1500', wall: '#2a1c00',
+        light: 'rgba(251,191,36,0.15)', pType: 'dust',
         playerStart: {x: 384, y: 400},
         init: function() {},
         update: function(dt) {
@@ -631,69 +617,55 @@ const LEVEL_DEFS = {
         entities: [
             { type:'chest', id:'gem4', x:384, y:120, r:30, title:'Shrinkage', 
               text:'¿Qué factor λ_j determina la fuerza del shrinkage?',
-              opts: [{t:'Crece si la varianza del grupo disminuye.',c:0},{t:'Depende del tamaño de muestra n. Crece con mayor n.',c:1},{t:'Es una constante universal.',c:0}] },
+              opts: [{t:'Varianza del grupo.',c:0},{t:'Tamaño de muestra n.',c:1}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
         ],
         decor: (ctx, scx, scy) => {
-            ctx.fillStyle = 'rgba(251,191,36,0.15)';
+            ctx.fillStyle = 'rgba(251,191,36,0.1)';
             ctx.fillRect(360-scx, 0-scy, 48, 16*TSIZE);
-            // flechas transportadoras
-            ctx.fillStyle = 'rgba(251,191,36,0.5)';
-            const offset = (performance.now()/15) % 64;
-            for(let y=64; y<16*TSIZE; y+=64) {
-                ctx.font = '24px Arial'; 
-                ctx.fillText('→', 200 + offset - scx, y - scy);
-                ctx.fillText('←', 568 - offset - scx, y - scy);
-            }
         }
     },
     level5: {
         name: 'V. Inferencia', mapW: 24, mapH: 16,
         f0: '#150404', f1: '#1a0505', wall: '#2a0808',
+        light: 'rgba(239,68,68,0.22)', pType: 'lava',
         playerStart: {x: 384, y: 400},
-        pools: [{x:240, y:200, r:40, offset:0}, {x:520, y:280, r:50, offset:Math.PI}, {x:384, y:240, r:35, offset:Math.PI/2}],
+        pools: [{x:240, y:200, r:40, offset:0}, {x:520, y:280, r:50, offset:Math.PI}],
         init: function() {},
         update: function(dt) {
             const t = performance.now()/400;
             this.pools.forEach(p => {
                 p.active = Math.sin(t + p.offset) > 0.4;
                 if(p.active && dist(player.x, player.y, p.x, p.y) < p.r - 5) {
-                    player.y = Math.min(player.y + 40, this.mapH*TSIZE - TSIZE);
+                    player.y = Math.min(player.y + 40, 16*TSIZE-TSIZE);
                     triggerScreenShake();
                 }
             });
         },
         entities: [
-            { type:'chest', id:'gem5', x:384, y:120, r:30, title:'Geometría de Muestreo', 
-              text:'Para evitar el "Embudo de Neal" en algoritmos MCMC con pocos datos, debes usar:',
-              opts: [{t:'Parametrización Centrada',c:0},{t:'Parametrización No Centrada (Desacoplar)',c:1}] },
+            { type:'chest', id:'gem5', x:384, y:120, r:30, title:'Geometría', 
+              text:'Para evitar el "Embudo de Neal", ¿qué usas?',
+              opts: [{t:'Centrada',c:0},{t:'No Centrada',c:1}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
         ],
         decor: (ctx, scx, scy) => {
-            const def = LEVEL_DEFS['level5'];
-            def.pools.forEach(p => {
+            LEVEL_DEFS['level5'].pools.forEach(p => {
                 ctx.fillStyle = p.active ? '#ef4444' : '#450a0a';
                 ctx.beginPath(); ctx.ellipse(p.x-scx, p.y-scy, p.r, p.r/2, 0, 0, Math.PI*2); ctx.fill();
-                if(p.active) {
-                    ctx.strokeStyle = '#fca5a5'; ctx.lineWidth=2; ctx.stroke();
-                }
             });
-            ctx.strokeStyle = '#991b1b'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(200-scx, 400-scy); ctx.lineTo(384-scx, 150-scy); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(568-scx, 400-scy); ctx.lineTo(384-scx, 150-scy); ctx.stroke();
         }
     },
     dragon: {
         name: 'Sala del Dragón', mapW: 24, mapH: 16,
         f0: '#0f0505', f1: '#150505', wall: '#1f0000',
+        light: 'rgba(239,68,68,0.3)', pType: 'lava',
         playerStart: {x: 384, y: 400},
-        init: function() {},
         entities: [
             { type:'dragon', x:384, y:160, r:60, title:'El Dragón del Overfitting', 
-              text:'¡ROAAAR! He sobreajustado tus datos de entrenamiento hasta la perfección. ¿Qué métrica usas para estimar la capacidad predictiva real de tu modelo bayesiano?',
-              opts: [{t:'El R-cuadrado (R²) ajustado.',c:0},{t:'ELPD_LOO (LOO-CV con suavizado PSIS).',c:1},{t:'El R-hat debe ser menor a 1.01',c:0}],
-              phase2Text: '¡GRRR! Imposible... Pero aún soy fuerte. Si añado Priors débilmente informativos en lugar de Priors planos a mi modelo, ¿qué le pasará a mi Overfitting?',
-              phase2Opts: [{t:'Se agravará por culpa de la información subjetiva añadida.',c:0},{t:'Se reducirá dramáticamente gracias a la regularización (Shrinkage).',c:1}]
+              text:'¡ROAAAR! ¿Qué métrica usas para capacidad predictiva?',
+              opts: [{t:'R²',c:0},{t:'ELPD_LOO',c:1}],
+              phase2Text: '¡GRRR! ¿Y si añado Priors informativos?',
+              phase2Opts: [{t:'Peor',c:0},{t:'Mejor (Shrinkage)',c:1}]
             },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
         ],
@@ -990,33 +962,37 @@ function positionLabels(scx, scy) {
 
 /* === DRAWING UTILS === */
 function drawLighting(ctx, scx, scy) {
-    // Vignette base
+    const def = LEVEL_DEFS[currentLevelId];
+    
+    // Vignette base con tinte temático
     const grad = ctx.createRadialGradient(CW/2, CH/2, CH/3, CW/2, CH/2, CW*0.8);
     grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+    grad.addColorStop(1, def.light || 'rgba(0,0,0,0.6)');
     ctx.fillStyle = grad;
     ctx.fillRect(0,0,CW,CH);
 
     // Spotlight del jugador
     const px = player.x - scx; const py = player.y - scy - 10;
     const pLight = ctx.createRadialGradient(px, py, 10, px, py, 150);
-    pLight.addColorStop(0, 'rgba(255,255,255,0.15)');
+    pLight.addColorStop(0, 'rgba(255,255,255,0.12)');
     pLight.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.globalCompositeOperation = 'screen';
     ctx.fillStyle = pLight;
     ctx.fillRect(px-150, py-150, 300, 300);
 
-    // Luces de antorcha (si es nivel hub, en las esquinas)
-    if(currentLevelId === 'hub') {
-        const tPos = [[TSIZE*2, TSIZE*2], [TSIZE*28, TSIZE*2], [TSIZE*2, TSIZE*18], [TSIZE*28, TSIZE*18]];
-        const flicker = Math.sin(performance.now()/150)*0.05;
+    // Luces de antorcha / ambiente pulsante
+    if(currentLevelId === 'hub' || currentLevelId === 'level5' || currentLevelId === 'dragon') {
+        const flicker = Math.sin(performance.now()/150)*0.04;
+        const color = currentLevelId === 'hub' ? '255,160,40' : '255,50,50';
+        const tPos = currentLevelId === 'hub' ? [[TSIZE*2, TSIZE*2], [TSIZE*28, TSIZE*2]] : [[player.x-scx, player.y-scy]];
+        
         tPos.forEach(p => {
-            const tx = p[0] - scx; const ty = p[1] - scy;
-            const tLight = ctx.createRadialGradient(tx, ty, 5, tx, ty, 100);
-            tLight.addColorStop(0, `rgba(255,160,40,${0.25+flicker})`);
-            tLight.addColorStop(1, 'rgba(255,160,40,0)');
+            const tx = p[0]; const ty = p[1];
+            const tLight = ctx.createRadialGradient(tx, ty, 5, tx, ty, 130);
+            tLight.addColorStop(0, `rgba(${color},${0.25+flicker})`);
+            tLight.addColorStop(1, `rgba(${color},0)`);
             ctx.fillStyle = tLight;
-            ctx.fillRect(tx-100, ty-100, 200, 200);
+            ctx.fillRect(tx-130, ty-130, 260, 260);
         });
     }
     ctx.globalCompositeOperation = 'source-over';
@@ -1035,12 +1011,26 @@ function drawMap(ctx, def, scx, scy) {
             const tx = c * TSIZE - scx;
             const ty = r * TSIZE - scy;
             
-            if(r===0 || r===def.mapH-1 || c===0 || c===def.mapW-1) {
-                ctx.fillStyle = def.wall; ctx.fillRect(tx, ty, TSIZE, TSIZE);
-                ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(tx+2, ty+2, TSIZE-4, TSIZE-4);
+            const isWall = (r===0 || r===def.mapH-1 || c===0 || c===def.mapW-1);
+            if(isWall) {
+                // Cara frontal (Sombra)
+                ctx.fillStyle = def.wall;
+                ctx.fillRect(tx, ty, TSIZE, TSIZE);
+                
+                // Cara superior (Efecto 2.5D brillante)
+                ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                ctx.fillRect(tx, ty, TSIZE, 6);
+                
+                // Sombra profunda interna
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(tx + 2, ty + 6, TSIZE - 4, TSIZE - 8);
             } else {
                 ctx.fillStyle = ((r+c)%2===0) ? def.f0 : def.f1;
                 ctx.fillRect(tx, ty, TSIZE, TSIZE);
+                
+                // Grid sutil
+                ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+                ctx.strokeRect(tx, ty, TSIZE, TSIZE);
             }
         }
     }
