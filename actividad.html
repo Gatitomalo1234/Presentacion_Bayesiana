@@ -1241,7 +1241,7 @@ function update(dt) {
         actionPressed = true;
         for(let ent of activeEntities) {
             if(dist(player.x, player.y, ent.x, ent.y) < ent.r) {
-        } else if(ent.type === 'door') {
+                if(ent.type === 'door') {
                     if(ent.requiresAll && !hasAllGems()) {
                         showModal('La Sala está Sellada', 'Necesitas las 5 Gemas de Sabiduría para enfrentarte al Dragón del Overfitting.', true, null);
                     } else {
