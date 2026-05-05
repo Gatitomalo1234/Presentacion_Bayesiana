@@ -236,6 +236,13 @@ const DRAGON_ANIMS = {
     attack: { y: 128, x: 0, step: 128, frames: 4, w: 128, h: 128 }
 };
 
+const lampWallImg = new Image();
+lampWallImg.src = 'lamp_wall.png';
+const lampPostImg = new Image();
+lampPostImg.src = 'lamp_post.png';
+let lampsLoaded = 0;
+lampWallImg.onload = lampPostImg.onload = () => { lampsLoaded++; };
+
 /* === AUDIO SYSTEM === */
 let audioCtx = null;
 let ambientOsc1 = null, ambientOsc2 = null;
@@ -543,11 +550,36 @@ const LEVEL_DEFS = {
             { type:'door', target:'level5', x:800, y:140, r:40, color:'#ef4444', label:'V. Inferencia' },
             { type:'door', target:'dragon', x:480, y:320, r:50, color:'#fff', label:'Sala del Dragón (5 Gemas)', requiresAll:true }
         ],
+        lamps: [
+            {x: 100, y: 150, type:'wall'}, {x: 860, y: 150, type:'wall'},
+            {x: 350, y: 80, type:'wall'}, {x: 610, y: 80, type:'wall'},
+            {x: 50, y: 450, type:'post'}, {x: 910, y: 450, type:'post'},
+            {x: 400, y: 280, type:'post'}, {x: 560, y: 280, type:'post'}
+        ],
         decor: (ctx, scx, scy) => {
             ctx.fillStyle = '#3a1010';
             ctx.fillRect(480 - 64 - scx, 120 - scy, 128, 400);
             ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
             ctx.strokeRect(480 - 64 - scx, 120 - scy, 128, 400);
+
+            // Dibujar Lámparas con Glow
+            const t = performance.now() / 1000;
+            const glow = Math.sin(t * 3) * 0.15 + 0.35;
+            
+            LEVEL_DEFS.hub.lamps.forEach(l => {
+                const img = l.type === 'wall' ? lampWallImg : lampPostImg;
+                if(lampsLoaded >= 2) {
+                    const w = 32, h = 32;
+                    ctx.drawImage(img, l.x - scx - w/2, l.y - scy - h, w, h);
+                    
+                    // Aura Bayesiana Azul
+                    const gradient = ctx.createRadialGradient(l.x-scx, l.y-scy-20, 0, l.x-scx, l.y-scy-20, 40);
+                    gradient.addColorStop(0, `rgba(56, 189, 248, ${glow})`);
+                    gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath(); ctx.arc(l.x-scx, l.y-scy-20, 50, 0, Math.PI*2); ctx.fill();
+                }
+            });
         }
     },
     level1: {
