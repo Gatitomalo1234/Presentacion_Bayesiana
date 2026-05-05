@@ -211,13 +211,18 @@ let shakeTime = 0;
 const wizardSheet = new Image();
 wizardSheet.src = 'mago.png';
 const wizardPrueba = new Image();
-wizardPrueba.src = 'mago frente.png';
+wizardPrueba.src = encodeURI('mago frente.png');
 
 let wizardLoaded = false;
 let wizardPruebaLoaded = false;
 wizardSheet.onload = () => { wizardLoaded = true; };
-wizardPrueba.onload = () => { wizardPruebaLoaded = true; };
-wizardPrueba.onerror = () => { console.warn('No se pudo cargar mago frente.png, usando respaldo.'); };
+wizardPrueba.onload = () => { 
+    wizardPruebaLoaded = true; 
+    console.log('Mago de prueba cargado con éxito');
+};
+wizardPrueba.onerror = () => { 
+    console.warn('No se pudo cargar mago frente.png, usando respaldo.'); 
+};
 
 // Mapeo de la hoja de sprites profesional (Grilla limpia de 32x32)
 const WIZ_ANIMS = {
