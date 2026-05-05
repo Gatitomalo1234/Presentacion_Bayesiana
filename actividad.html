@@ -204,10 +204,26 @@ let lastTime = performance.now();
 const FIXED_DT = 1 / 60;
 let accumulator = 0;
 
-let camTargetX = 0, camTargetY = 0;
-let cameraX = 0, cameraY = 0;
 const CAM_LERP = 0.10;
 let shakeTime = 0;
+
+/* === SPRITE SHEET LOADING === */
+const wizardSheet = new Image();
+wizardSheet.src = 'mago.png';
+let wizardLoaded = false;
+wizardSheet.onload = () => { wizardLoaded = true; };
+
+// Mapeo de la hoja de sprites (basado en la imagen de referencia)
+// Nota: Usamos proporciones para extraer los frames individuales
+const WIZ_ANIMS = {
+    idle: { y: 345, x: 145, step: 135, frames: 4, w: 90, h: 110 },
+    walk: { y: 490, x: 145, step: 135, frames: 6, w: 90, h: 110 },
+    cast: { y: 640, x: 145, step: 165, frames: 4, w: 120, h: 110 },
+    down: { x: 120, y: 855, w: 90, h: 110 },
+    left: { x: 250, y: 855, w: 90, h: 110 },
+    right: { x: 380, y: 855, w: 90, h: 110 },
+    up: { x: 510, y: 855, w: 90, h: 110 }
+};
 
 /* === AUDIO SYSTEM === */
 let audioCtx = null;
@@ -764,9 +780,36 @@ const player = {
         this.x = nx; this.y = ny;
     },
     draw: function(ctx, cx, cy) {
-        const frame = (Math.floor(this.animTimer) % 2 === 0) ? SPRITES.wizard : SPRITES.wizard_walk;
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.beginPath(); ctx.ellipse(this.x - cx, this.y - cy, 14, 5, 0, 0, Math.PI*2); ctx.fill();
+
         const bob = this.moving ? (Math.floor(this.animTimer)%2 === 0 ? 0 : 2) : 0;
-        renderSprite(ctx, frame, this.x - cx, this.y - cy - bob, this.dir === -1);
+
+        if(!wizardLoaded) {
+            const frame = (Math.floor(this.animTimer) % 2 === 0) ? SPRITES.wizard : SPRITES.wizard_walk;
+            renderSprite(ctx, frame, this.x - cx, this.y - cy - bob, this.dir === -1);
+        } else {
+            let anim = WIZ_ANIMS.idle;
+            let frame = Math.floor(this.animTimer) % anim.frames;
+            if(this.moving) { anim = WIZ_ANIMS.walk; frame = Math.floor(this.animTimer) % anim.frames; }
+
+            const sx = anim.x + (frame * anim.step);
+            const sy = anim.y;
+            const sw = anim.w;
+            const sh = anim.h;
+            const dw = 48, dh = 58;
+
+            ctx.save();
+            if(this.dir === -1) {
+                ctx.translate(this.x - cx, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(wizardSheet, sx, sy, sw, sh, -dw/2, this.y - cy - dh + 5, dw, dh);
+            } else {
+                ctx.drawImage(wizardSheet, sx, sy, sw, sh, this.x - cx - dw/2, this.y - cy - dh + 5, dw, dh);
+            }
+            ctx.restore();
+        }
         
         // Staff Glow
         if (staffGlowTime > 0) {
@@ -783,10 +826,6 @@ const player = {
             ctx.fillStyle = `rgba(255,240,100,${alpha})`;
             ctx.fillRect(tipX - 2, tipY - 2, 4, 4);
         }
-
-        // Shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.beginPath(); ctx.ellipse(this.x - cx, this.y - cy, 14, 5, 0, 0, Math.PI*2); ctx.fill();
     }
 };
 
