@@ -214,7 +214,10 @@ const wizardPrueba = new Image();
 wizardPrueba.src = 'mago frente.png';
 
 let wizardLoaded = false;
+let wizardPruebaLoaded = false;
 wizardSheet.onload = () => { wizardLoaded = true; };
+wizardPrueba.onload = () => { wizardPruebaLoaded = true; };
+wizardPrueba.onerror = () => { console.warn('No se pudo cargar mago frente.png, usando respaldo.'); };
 
 // Mapeo de la hoja de sprites profesional (Grilla limpia de 32x32)
 const WIZ_ANIMS = {
