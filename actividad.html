@@ -566,7 +566,6 @@ const LEVEL_DEFS = {
             { type:'door', target:'level4', x:670, y:110, r:45, color:'#fbbf24', label:'IV. Shrinkage', customImg:true },
             { type:'door', target:'level5', x:800, y:140, r:45, color:'#ef4444', label:'V. Inferencia', customImg:true },
             { type:'door', target:'dragon', x:480, y:320, r:55, color:'#fff', label:'SALA DEL DRAGÓN', requiresAll:true, customImg:true },
-            { type:'decor', img:'sword', x:480, y:240, scale:2.8, depthOffset: 10 },
             { type:'decor', img:'gargoyle', x:380, y:320, scale:2.2, depthOffset: 15 },
             { type:'decor', img:'gargoyle', x:580, y:320, scale:2.2, flip:true, depthOffset: 15 },
             { type:'decor', img:'gargoyle', x:100, y:500, scale:2, depthOffset: 15 },
@@ -574,15 +573,13 @@ const LEVEL_DEFS = {
             { type:'floating_lamp', color:'blue', x:320, y:220 },
             { type:'floating_lamp', color:'blue', x:640, y:220 },
             { type:'floating_lamp', color:'bronze', x:220, y:400 },
-            { type:'floating_lamp', color:'bronze', x:740, y:400 }
+            { type:'floating_lamp', color:'bronze', x:740, y:400 },
+            // Lámparas extra custodiando la puerta del Dragón
+            { type:'floating_lamp', color:'bronze', x:410, y:280 },
+            { type:'floating_lamp', color:'bronze', x:550, y:280 }
         ],
         // Definición de pilares/paredes internas para el 3D
-        internalWalls: [
-            {r: 5, c: 7, w: 2, h: 3},
-            {r: 5, c: 21, w: 2, h: 3},
-            {r: 12, c: 10, w: 1, h: 4},
-            {r: 12, c: 19, w: 1, h: 4}
-        ],
+        internalWalls: [],
         lamps: [
             {x: 80, y: 120, type:'wall'}, {x: 880, y: 120, type:'wall'},
             {x: 480, y: 40, type:'wall'}
