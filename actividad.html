@@ -212,17 +212,18 @@ const wizardSheet = new Image();
 wizardSheet.src = 'assets/mago/mago_sheet.png';
 const wizardPrueba = new Image();
 wizardPrueba.src = 'assets/mago/mago_frente.png';
+const wizardWalk1 = new Image();
+wizardWalk1.src = 'assets/mago/caminar%201.png';
+const wizardWalk2 = new Image();
+wizardWalk2.src = 'assets/mago/caminar%202.png';
 
 let wizardLoaded = false;
 let wizardPruebaLoaded = false;
+let wizardWalkLoaded = 0;
 wizardSheet.onload = () => { wizardLoaded = true; };
-wizardPrueba.onload = () => { 
-    wizardPruebaLoaded = true; 
-    console.log('Mago de prueba cargado con éxito');
-};
-wizardPrueba.onerror = () => { 
-    console.warn('No se pudo cargar mago frente.png, usando respaldo.'); 
-};
+wizardPrueba.onload = () => { wizardPruebaLoaded = true; console.log('Mago frente cargado'); };
+wizardWalk1.onload = wizardWalk2.onload = () => { wizardWalkLoaded++; };
+wizardPrueba.onerror = () => { console.warn('No se pudo cargar mago frente.png'); };
 
 // Mapeo de la hoja de sprites profesional (Grilla limpia de 32x32)
 const WIZ_ANIMS = {
@@ -872,13 +873,19 @@ const player = {
         const bob = this.moving ? (Math.floor(this.animTimer)%2 === 0 ? 0 : 2) : 0;
 
         if(wizardPruebaLoaded) {
+            let img = wizardPrueba;
+            if(this.moving && wizardWalkLoaded >= 2) {
+                // Ciclo de caminata entre los dos frames nuevos
+                img = (Math.floor(this.animTimer) % 2 === 0) ? wizardWalk1 : wizardWalk2;
+            }
+            
             const dw = 48, dh = 58;
             ctx.save();
             if(this.dir === -1) {
                 ctx.translate(this.x - cx, 0); ctx.scale(-1, 1);
-                ctx.drawImage(wizardPrueba, -dw/2, this.y - cy - dh + 8, dw, dh);
+                ctx.drawImage(img, -dw/2, this.y - cy - dh + 8, dw, dh);
             } else {
-                ctx.drawImage(wizardPrueba, this.x - cx - dw/2, this.y - cy - dh + 8, dw, dh);
+                ctx.drawImage(img, this.x - cx - dw/2, this.y - cy - dh + 8, dw, dh);
             }
             ctx.restore();
         } else if(!wizardLoaded) {
