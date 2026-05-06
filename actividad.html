@@ -612,7 +612,7 @@ const LEVEL_DEFS = {
     },
     level1: {
         name: 'I. El Problema', mapW: 24, mapH: 16,
-        f0: '#131e28', f1: '#192436', wall: '#1e2d40',
+        f0: '#131e28', f1: '#192436', wall: '#0f172a',
         light: 'rgba(56,189,248,0.18)', pType: 'dust',
         playerStart: {x: 384, y: 400},
         outliers: [],
@@ -640,14 +640,13 @@ const LEVEL_DEFS = {
             { type:'chest', id:'gem1', x:384, y:200, r:30, title:'Intercambiabilidad', 
               text:'¿Qué concepto de De Finetti justifica tratar a turistas de la misma ciudad como si vinieran de una misma distribución poblacional?',
               opts: [{t:'Intercambiabilidad Completa',c:0},{t:'Intercambiabilidad Parcial',c:1},{t:'Independencia Estricta',c:0}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
+            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
+            { type:'floating_lamp', color:'blue', x:150, y:150 },
+            { type:'floating_lamp', color:'blue', x:618, y:150 },
+            { type:'decor', img:'gargoyle', x:250, y:460, scale:1.8 },
+            { type:'decor', img:'gargoyle', x:518, y:460, scale:1.8, flip:true }
         ],
         decor: (ctx, scx, scy) => {
-            const pts = [[300,150,'#38bdf8'],[320,130,'#38bdf8'],[310,180,'#38bdf8'],
-                         [450,200,'#a855f7'],[470,220,'#a855f7'],[440,250,'#a855f7']];
-            pts.forEach(p => {
-                ctx.fillStyle = p[2]; ctx.beginPath(); ctx.arc(p[0]-scx, p[1]-scy, 4, 0, Math.PI*2); ctx.fill();
-            });
             const def = LEVEL_DEFS['level1'];
             def.outliers.forEach(o => {
                 ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r, 0, Math.PI*2); ctx.fill();
@@ -676,7 +675,7 @@ const LEVEL_DEFS = {
     },
     level2: {
         name: 'II. Pooling', mapW: 24, mapH: 16,
-        f0: '#111', f1: '#111', wall: '#222',
+        f0: '#1a0b2e', f1: '#210e3b', wall: '#150826',
         light: 'rgba(168,85,247,0.15)', pType: 'dust',
         playerStart: {x: 384, y: 400},
         plates: [{x:160,y:200,on:false},{x:384,y:100,on:false},{x:600,y:200,on:false}],
@@ -696,19 +695,23 @@ const LEVEL_DEFS = {
             { type:'chest', id:'gem2', x:384, y:240, r:30, title:'Pooling', 
               text:'¿Cuál es el problema principal del enfoque de "No-Pooling" cuando analizamos grupos con pocos datos?',
               opts: [{t:'Asume que todos los grupos son idénticos.',c:0},{t:'Genera estimaciones con alta varianza al no compartir información.',c:1}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
+            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
+            { type:'decor', img:'candelabra', x:200, y:120, scale:1.5 },
+            { type:'decor', img:'candelabra', x:568, y:120, scale:1.5 }
         ],
         decor: (ctx, scx, scy) => {
             const def = LEVEL_DEFS['level2'];
             def.plates.forEach(p => {
                 ctx.fillStyle = p.on ? '#a855f7' : '#333';
                 ctx.fillRect(p.x-16-scx, p.y-16-scy, 32, 32);
+                ctx.strokeStyle = p.on ? '#d8b4fe' : '#555';
+                ctx.strokeRect(p.x-16-scx, p.y-16-scy, 32, 32);
             });
         }
     },
     level3: {
         name: 'III. Jerárquico', mapW: 24, mapH: 16,
-        f0: '#130c22', f1: '#180e28', wall: '#1a0d30',
+        f0: '#06160d', f1: '#091f13', wall: '#040d08',
         light: 'rgba(16,185,129,0.15)', pType: 'magic',
         playerStart: {x: 384, y: 400},
         walls: [{x:250, y:120, w:60, h:180}, {x:458, y:120, w:60, h:180}],
@@ -725,20 +728,23 @@ const LEVEL_DEFS = {
             { type:'chest', id:'gem3', x:384, y:120, r:30, title:'Modelo Jerárquico', 
               text:'En α_j ~ N(μ_α, σ_α), ¿qué representan μ_α y σ_α?',
               opts: [{t:'La población de interceptos.',c:1},{t:'El error individual.',c:0}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' },
+            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
             { type:'decor', img:'cage', x:150, y:100, scale:2 },
             { type:'decor', img:'cage', x:618, y:100, scale:2 },
             { type:'decor', img:'mushrooms', x:100, y:300, scale:1.5 },
             { type:'decor', img:'mushrooms', x:684, y:350, scale:1.5 }
         ],
         decor: (ctx, scx, scy) => {
-            ctx.fillStyle = '#0f081c';
-            LEVEL_DEFS['level3'].walls.forEach(w => ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h));
+            const def = LEVEL_DEFS['level3'];
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            def.walls.forEach(w => {
+                ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
+            });
         }
     },
     level4: {
         name: 'IV. Shrinkage', mapW: 24, mapH: 16,
-        f0: '#1a1200', f1: '#1f1500', wall: '#2a1c00',
+        f0: '#2a1a08', f1: '#32200a', wall: '#1c1004',
         light: 'rgba(251,191,36,0.15)', pType: 'dust',
         playerStart: {x: 384, y: 400},
         init: function() {},
@@ -751,7 +757,9 @@ const LEVEL_DEFS = {
             { type:'chest', id:'gem4', x:384, y:120, r:30, title:'Shrinkage', 
               text:'¿Qué factor λ_j determina la fuerza del shrinkage?',
               opts: [{t:'Varianza del grupo.',c:0},{t:'Tamaño de muestra n.',c:1}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
+            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
+            { type:'floating_lamp', color:'bronze', x:200, y:250 },
+            { type:'floating_lamp', color:'bronze', x:568, y:250 }
         ],
         decor: (ctx, scx, scy) => {
             ctx.fillStyle = 'rgba(251,191,36,0.1)';
@@ -760,7 +768,7 @@ const LEVEL_DEFS = {
     },
     level5: {
         name: 'V. Inferencia', mapW: 24, mapH: 16,
-        f0: '#150404', f1: '#1a0505', wall: '#2a0808',
+        f0: '#1a0505', f1: '#220808', wall: '#140303',
         light: 'rgba(239,68,68,0.22)', pType: 'lava',
         playerStart: {x: 384, y: 400},
         pools: [{x:240, y:200, r:40, offset:0}, {x:520, y:280, r:50, offset:Math.PI}],
@@ -779,7 +787,9 @@ const LEVEL_DEFS = {
             { type:'chest', id:'gem5', x:384, y:120, r:30, title:'Geometría', 
               text:'Para evitar el "Embudo de Neal", ¿qué usas?',
               opts: [{t:'Centrada',c:0},{t:'No Centrada',c:1}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub' }
+            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
+            { type:'decor', img:'cage', x:180, y:120, scale:2 },
+            { type:'decor', img:'cage', x:588, y:120, scale:2 }
         ],
         decor: (ctx, scx, scy) => {
             LEVEL_DEFS['level5'].pools.forEach(p => {
@@ -1231,6 +1241,21 @@ function drawMap(ctx, def, scx, scy) {
                     ctx.moveTo(tx+4, ty+4); ctx.lineTo(tx+12, ty+4);
                     ctx.moveTo(tx+20, ty+10); ctx.lineTo(tx+28, ty+10);
                     ctx.stroke();
+                } else if(currentLevelId === 'level1') {
+                    ctx.fillStyle = ((r+c)%2===0) ? def.f0 : def.f1;
+                    ctx.fillRect(tx, ty, TSIZE, TSIZE);
+                    ctx.fillStyle = 'rgba(56,189,248,0.05)';
+                    ctx.fillRect(tx+14, ty+14, 4, 4);
+                } else if(currentLevelId === 'level2') {
+                    ctx.fillStyle = ((r+c)%2===0) ? def.f0 : def.f1;
+                    ctx.fillRect(tx, ty, TSIZE, TSIZE);
+                    ctx.strokeStyle = 'rgba(168,85,247,0.1)';
+                    ctx.strokeRect(tx+4, ty+4, TSIZE-8, TSIZE-8);
+                } else if(currentLevelId === 'level3') {
+                    ctx.fillStyle = ((r+c)%2===0) ? def.f0 : def.f1;
+                    ctx.fillRect(tx, ty, TSIZE, TSIZE);
+                    ctx.fillStyle = 'rgba(16,185,129,0.05)';
+                    if(Math.random() > 0.8) ctx.fillRect(tx, ty, TSIZE, TSIZE); // musgo sutil
                 } else {
                     ctx.fillStyle = ((r+c)%2===0) ? def.f0 : def.f1;
                     ctx.fillRect(tx, ty, TSIZE, TSIZE);
