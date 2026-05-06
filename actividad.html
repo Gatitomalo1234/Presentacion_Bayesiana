@@ -817,6 +817,10 @@ window.addEventListener('keyup', e => {
     if(['d','ArrowRight'].includes(e.key)) keys.d = 0;
     if(['e','Enter',' '].includes(e.key)) keys.action = 0;
 });
+window.addEventListener('blur', () => { 
+    for(let k in keys) keys[k] = 0; 
+    for(let k in touches) touches[k] = 0;
+});
 
 function bindBtn(id, key) {
     const el = document.getElementById(id);
@@ -875,8 +879,11 @@ const player = {
         if(wizardPruebaLoaded) {
             let img = wizardPrueba;
             if(this.moving && wizardWalkLoaded >= 2) {
-                // Ciclo de caminata entre los dos frames nuevos
-                img = (Math.floor(this.animTimer) % 2 === 0) ? wizardWalk1 : wizardWalk2;
+                // Ciclo de 4 pasos para naturalidad: 0:Frente, 1:Walk1, 2:Frente, 3:Walk2
+                const step = Math.floor(this.animTimer / 1.5) % 4;
+                if(step === 1) img = wizardWalk1;
+                else if(step === 3) img = wizardWalk2;
+                else img = wizardPrueba;
             }
             
             const dw = 48, dh = 58;
