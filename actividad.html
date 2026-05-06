@@ -255,8 +255,10 @@ const candelabraImg = new Image(); candelabraImg.src = 'assets/decor/candelabra.
 const cageImg = new Image(); cageImg.src = 'assets/decor/cage.png';
 const mushroomsImg = new Image(); mushroomsImg.src = 'assets/decor/mushrooms.png';
 const castleDoorImg = new Image(); castleDoorImg.src = 'assets/decor/castle_door.png';
+const lampHangingBlueImg = new Image(); lampHangingBlueImg.src = 'assets/decor/lamp_hanging_blue.png';
+const lampHangingBronzeImg = new Image(); lampHangingBronzeImg.src = 'assets/decor/lamp_hanging_bronze.png';
 let sceneryLoaded = 0;
-swordStoneImg.onload = gargoyleImg.onload = candelabraImg.onload = cageImg.onload = mushroomsImg.onload = castleDoorImg.onload = () => { sceneryLoaded++; };
+swordStoneImg.onload = gargoyleImg.onload = candelabraImg.onload = cageImg.onload = mushroomsImg.onload = castleDoorImg.onload = lampHangingBlueImg.onload = lampHangingBronzeImg.onload = () => { sceneryLoaded++; };
 
 /* === AUDIO SYSTEM === */
 let audioCtx = null;
@@ -564,18 +566,26 @@ const LEVEL_DEFS = {
             { type:'door', target:'level4', x:670, y:110, r:45, color:'#fbbf24', label:'IV. Shrinkage', customImg:true },
             { type:'door', target:'level5', x:800, y:140, r:45, color:'#ef4444', label:'V. Inferencia', customImg:true },
             { type:'door', target:'dragon', x:480, y:320, r:55, color:'#fff', label:'SALA DEL DRAGÓN', requiresAll:true, customImg:true },
-            { type:'decor', img:'sword', x:480, y:240, scale:2.8 },
-            { type:'decor', img:'gargoyle', x:380, y:320, scale:2.2 },
-            { type:'decor', img:'gargoyle', x:580, y:320, scale:2.2, flip:true },
-            { type:'decor', img:'gargoyle', x:100, y:500, scale:2 },
-            { type:'decor', img:'gargoyle', x:860, y:500, scale:2, flip:true }
+            { type:'decor', img:'sword', x:480, y:240, scale:2.8, depthOffset: 10 },
+            { type:'decor', img:'gargoyle', x:380, y:320, scale:2.2, depthOffset: 15 },
+            { type:'decor', img:'gargoyle', x:580, y:320, scale:2.2, flip:true, depthOffset: 15 },
+            { type:'decor', img:'gargoyle', x:100, y:500, scale:2, depthOffset: 15 },
+            { type:'decor', img:'gargoyle', x:860, y:500, scale:2, flip:true, depthOffset: 15 },
+            { type:'floating_lamp', color:'blue', x:320, y:220 },
+            { type:'floating_lamp', color:'blue', x:640, y:220 },
+            { type:'floating_lamp', color:'bronze', x:220, y:400 },
+            { type:'floating_lamp', color:'bronze', x:740, y:400 }
+        ],
+        // Definición de pilares/paredes internas para el 3D
+        internalWalls: [
+            {r: 5, c: 7, w: 2, h: 3},
+            {r: 5, c: 21, w: 2, h: 3},
+            {r: 12, c: 10, w: 1, h: 4},
+            {r: 12, c: 19, w: 1, h: 4}
         ],
         lamps: [
             {x: 80, y: 120, type:'wall'}, {x: 880, y: 120, type:'wall'},
-            {x: 320, y: 60, type:'wall'}, {x: 640, y: 60, type:'wall'},
-            {x: 480, y: 40, type:'wall'},
-            {x: 50, y: 550, type:'post'}, {x: 910, y: 550, type:'post'},
-            {x: 400, y: 280, type:'post'}, {x: 560, y: 280, type:'post'}
+            {x: 480, y: 40, type:'wall'}
         ],
         decor: (ctx, scx, scy) => {
             ctx.fillStyle = '#3a1010';
@@ -1067,10 +1077,31 @@ function handleAnswer(isCorrect) {
         } else {
             triggerScreenShake();
             const id = currentDialog.id;
-            if(id) attemptCount[id] = (attemptCount[id] || 0) + 1;
+            const hw = player.w/2, hh = player.h/2;
+            const nx = player.x;
+            const ny = player.y + 35;
             
             const def = LEVEL_DEFS[currentLevelId];
-            player.y = Math.min(player.y + 35, def.mapH * TSIZE - TSIZE);
+            let canMoveX = nx > TSIZE + hw && nx < def.mapW * TSIZE - TSIZE - hw;
+            let canMoveY = ny > TSIZE + hh && ny < def.mapH * TSIZE - TSIZE - hh;
+            
+            // Colisiones con paredes internas 3D
+            if(def.internalWalls) {
+                def.internalWalls.forEach(w => {
+                    const wx = w.c * TSIZE; const wy = w.r * TSIZE;
+                    const ww = w.w * TSIZE; const wh = w.h * TSIZE;
+                    if(nx + hw > wx && nx - hw < wx + ww && player.y + hh > wy && player.y - hh < wy + wh) canMoveX = false;
+                    if(player.x + hw > wx && player.x - hw < wx + ww && ny + hh > wy && ny - hh < wy + wh) canMoveY = false;
+                });
+            }
+            
+            if(canMoveX) player.x = nx;
+            if(canMoveY) player.y = ny;
+            
+            player.x = Math.max(TSIZE+hw, Math.min(player.x, def.mapW*TSIZE - TSIZE - hw));
+            player.y = Math.max(TSIZE+hh, Math.min(player.y, def.mapH*TSIZE - TSIZE - hh));
+            
+            if(id) attemptCount[id] = (attemptCount[id] || 0) + 1;
             showModal('¡INCORRECTO!', 'Tus parámetros han sido sobreajustados... Inténtalo de nuevo.', true, null);
         }
     });
@@ -1180,30 +1211,24 @@ function drawMap(ctx, def, scx, scy) {
     const startRow = Math.max(0, Math.floor(scy / TSIZE));
     const endRow = Math.min(def.mapH, Math.ceil((scy + CH) / TSIZE));
 
+    const wallHeight = 24; // Altura de la cara frontal de las paredes 3D
+
+    // 1. DIBUJAR SUELO (Piso)
     for (let r = startRow; r < endRow; r++) {
         for (let c = startCol; c < endCol; c++) {
             const tx = c * TSIZE - scx;
             const ty = r * TSIZE - scy;
-            
-            const isWall = (r===0 || r===def.mapH-1 || c===0 || c===def.mapW-1);
-            if(isWall) {
-                // Cara frontal (Sombra)
-                ctx.fillStyle = def.wall;
-                ctx.fillRect(tx, ty, TSIZE, TSIZE);
-                
-                // Cara superior (Efecto 2.5D brillante)
-                ctx.fillStyle = 'rgba(255,255,255,0.08)';
-                ctx.fillRect(tx, ty, TSIZE, 6);
-                
-                // Sombra profunda interna
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.fillRect(tx + 2, ty + 6, TSIZE - 4, TSIZE - 8);
-                // Suelo de Mazmorra Detallado
+            let isWall = (r===0 || r===def.mapH-1 || c===0 || c===def.mapW-1);
+            if(def.internalWalls) {
+                def.internalWalls.forEach(w => {
+                    if(r >= w.r && r < w.r + w.h && c >= w.c && c < w.c + w.w) isWall = true;
+                });
+            }
+            if(!isWall) {
                 if(currentLevelId === 'hub') {
-                    ctx.fillStyle = ((r+c)%2===0) ? '#1a1a20' : '#1e1e24';
+                    ctx.fillStyle = ((r+c)%2===0) ? '#15151a' : '#1a1a20';
                     ctx.fillRect(tx, ty, TSIZE, TSIZE);
-                    // Detalles de piedra
-                    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
                     ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(tx+4, ty+4); ctx.lineTo(tx+12, ty+4);
@@ -1213,10 +1238,35 @@ function drawMap(ctx, def, scx, scy) {
                     ctx.fillStyle = ((r+c)%2===0) ? def.f0 : def.f1;
                     ctx.fillRect(tx, ty, TSIZE, TSIZE);
                 }
-                
-                // Grid sutil
                 ctx.strokeStyle = 'rgba(255,255,255,0.02)';
                 ctx.strokeRect(tx, ty, TSIZE, TSIZE);
+            }
+        }
+    }
+
+    // 2. DIBUJAR PAREDES 2.5D (De arriba hacia abajo para el Y-Sorting natural del mapa)
+    for (let r = startRow; r < endRow; r++) {
+        for (let c = startCol; c < endCol; c++) {
+            const tx = c * TSIZE - scx;
+            const ty = r * TSIZE - scy;
+            let isWall = (r===0 || r===def.mapH-1 || c===0 || c===def.mapW-1);
+            if(def.internalWalls) {
+                def.internalWalls.forEach(w => {
+                    if(r >= w.r && r < w.r + w.h && c >= w.c && c < w.c + w.w) isWall = true;
+                });
+            }
+            if(isWall) {
+                // Cara superior (Efecto 2.5D brillante)
+                ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                ctx.fillRect(tx, ty - wallHeight, TSIZE, TSIZE);
+                
+                // Cara frontal (La caída de la pared)
+                ctx.fillStyle = def.wall;
+                ctx.fillRect(tx, ty - wallHeight + TSIZE, TSIZE, wallHeight);
+                
+                // Borde superior para resaltar la esquina
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillRect(tx, ty - wallHeight + TSIZE, TSIZE, 2);
             }
         }
     }
@@ -1296,8 +1346,15 @@ function draw() {
     const def = LEVEL_DEFS[currentLevelId];
     drawMap(ctx, def, cameraX, cameraY);
 
-    activeEntities.forEach(ent => {
-        if(ent.type === 'chest') {
+    // Y-SORTING: Ordenar todas las entidades y el jugador por su coordenada Y
+    let renderables = [...activeEntities];
+    renderables.push({ type: 'player', y: player.y });
+    renderables.sort((a, b) => (a.y + (a.depthOffset||0)) - (b.y + (b.depthOffset||0)));
+
+    renderables.forEach(ent => {
+        if(ent.type === 'player') {
+            player.draw(ctx, cameraX, cameraY);
+        } else if(ent.type === 'chest') {
             const frame = gems[ent.id] ? SPRITES.chest_open : SPRITES.chest;
             renderSprite(ctx, frame, ent.x - cameraX, ent.y - cameraY);
         } else if(ent.type === 'door') {
@@ -1306,7 +1363,6 @@ function draw() {
             if(ent.customImg && castleDoorImg.complete) {
                 const dw = 64, dh = 80;
                 ctx.drawImage(castleDoorImg, ent.x - cameraX - dw/2, ent.y - cameraY - dh + 10, dw, dh);
-                // Brillo de color sobre la puerta
                 ctx.globalCompositeOperation = 'screen';
                 ctx.fillStyle = ent.color; ctx.globalAlpha = 0.2 * glow;
                 ctx.fillRect(ent.x - cameraX - dw/2, ent.y - cameraY - dh + 10, dw, dh);
@@ -1315,55 +1371,81 @@ function draw() {
                 renderSprite(ctx, SPRITES.door, ent.x - cameraX, ent.y - cameraY, false, 2, ent.color);
             }
             ctx.restore();
-            // Brillo en el suelo
             ctx.fillStyle = ent.color; ctx.globalAlpha = 0.15 * glow;
             ctx.beginPath(); ctx.ellipse(ent.x - cameraX, ent.y - cameraY, 40, 15, 0, 0, Math.PI*2); ctx.fill();
             ctx.globalAlpha = 1;
         } else if(ent.type === 'dragon' && !ent.defeated) {
             if(!dragonLoaded) {
-                const tint = ent.phase2 ? '#ffaaaa' : null;
-                renderSprite(ctx, SPRITES.dragon, ent.x - cameraX, ent.y - cameraY, false, 3.5, tint);
+                renderSprite(ctx, SPRITES.dragon, ent.x - cameraX, ent.y - cameraY, ent.phase2, 2.5);
             } else {
-                let anim = DRAGON_ANIMS.idle;
-                if(ent.phase2) anim = DRAGON_ANIMS.attack;
-                
-                const frame = Math.floor(performance.now()/150) % anim.frames;
-                const sx = anim.x + (frame * anim.step);
-                const sy = anim.y;
-                const dw = 160, dh = 160; // Tamaño imponente para el boss
-
-                ctx.drawImage(dragonSheet, sx, sy, anim.w, anim.h, ent.x - cameraX - dw/2, ent.y - cameraY - dh + 20, dw, dh);
+                const t = performance.now()/1000;
+                const bob = Math.sin(t*2)*5;
+                const dw = 128, dh = 128;
+                let frameX = 0; let frameY = 0;
+                if(ent.phase2) {
+                    frameY = 128; 
+                    frameX = (Math.floor(t*6) % 4) * 128;
+                } else {
+                    frameY = 0;
+                    frameX = (Math.floor(t*4) % 4) * 128;
+                }
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.beginPath(); ctx.ellipse(ent.x - cameraX, ent.y - cameraY + 40, 40, 15, 0, 0, Math.PI*2); ctx.fill();
+                ctx.drawImage(dragonSheet, frameX, frameY, 128, 128, ent.x - cameraX - dw/2, ent.y - cameraY - dh/2 + bob, dw, dh);
+                ctx.restore();
             }
+        } else if(ent.type === 'floating_lamp') {
+            const t = performance.now()/1000;
+            const floatBob = Math.sin(t*3 + ent.x)*8;
+            const shadowSize = 15 - Math.sin(t*3 + ent.x)*3;
             
-            // Efecto aura dragón (más intenso)
-            const aura = Math.sin(performance.now()/200)*0.2 + 0.3;
-            ctx.fillStyle = ent.phase2 ? `rgba(255, 50, 50, ${aura})` : `rgba(239, 68, 68, ${aura})`;
-            ctx.beginPath(); ctx.ellipse(ent.x - cameraX, ent.y - cameraY - 40, 80, 50, 0, 0, Math.PI*2); ctx.fill();
+            // Sombra en el suelo
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath(); ctx.ellipse(ent.x - cameraX, ent.y - cameraY, shadowSize, shadowSize/2, 0, 0, Math.PI*2); ctx.fill();
+            
+            // Lámpara
+            const img = ent.color === 'blue' ? lampHangingBlueImg : lampHangingBronzeImg;
+            if(lampHangingBlueImg.complete && lampHangingBronzeImg.complete) {
+                const w = 32, h = 32;
+                ctx.drawImage(img, ent.x - cameraX - w/2, ent.y - cameraY - h*2 + floatBob, w, h);
+                
+                // Brillo dinámico
+                const glow = Math.sin(t * 3 + ent.x) * 0.15 + 0.35;
+                const auraColor = ent.color === 'blue' ? '56, 189, 248' : '251, 191, 36';
+                const gradient = ctx.createRadialGradient(ent.x-cameraX, ent.y-cameraY-h*1.5+floatBob, 0, ent.x-cameraX, ent.y-cameraY-h*1.5+floatBob, 60);
+                gradient.addColorStop(0, `rgba(${auraColor}, ${glow})`);
+                gradient.addColorStop(1, `rgba(${auraColor}, 0)`);
+                ctx.fillStyle = gradient;
+                ctx.beginPath(); ctx.arc(ent.x-cameraX, ent.y-cameraY-h*1.5+floatBob, 60, 0, Math.PI*2); ctx.fill();
+            }
         } else if(ent.type === 'decor') {
-            let img = null;
-            if(ent.img === 'sword') img = swordStoneImg;
+            let img = swordStoneImg;
             if(ent.img === 'gargoyle') img = gargoyleImg;
             if(ent.img === 'candelabra') img = candelabraImg;
             if(ent.img === 'cage') img = cageImg;
             if(ent.img === 'mushrooms') img = mushroomsImg;
-            
-            if(img && (img.complete || sceneryLoaded > 0)) {
-                const w = img.width * (ent.scale || 2);
-                const h = img.height * (ent.scale || 2);
+            if(sceneryLoaded >= 5) {
+                const w = img.width * ent.scale;
+                const h = img.height * ent.scale;
+                
+                // Sombra base
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath(); ctx.ellipse(ent.x - cameraX, ent.y - cameraY, w/3, 8, 0, 0, Math.PI*2); ctx.fill();
+                
                 ctx.save();
-                if(ent.flip) { 
-                    ctx.translate(ent.x - cameraX, 0); 
-                    ctx.scale(-1, 1); 
-                    ctx.drawImage(img, -w/2, ent.y - cameraY - h, w, h); 
+                if(ent.flip) {
+                    ctx.translate(ent.x - cameraX, 0); ctx.scale(-1, 1);
+                    ctx.drawImage(img, -w/2, ent.y - cameraY - h + (ent.depthOffset||0), w, h);
                 } else {
-                    ctx.drawImage(img, ent.x - cameraX - w/2, ent.y - cameraY - h, w, h);
+                    ctx.drawImage(img, ent.x - cameraX - w/2, ent.y - cameraY - h + (ent.depthOffset||0), w, h);
                 }
                 ctx.restore();
             }
         }
     });
 
-    player.draw(ctx, cameraX, cameraY);
     drawParticles(cameraX, cameraY);
     drawLighting(ctx, cameraX, cameraY);
 
