@@ -33,31 +33,49 @@
         /* --- CONTROLES MÓVILES --- */
         #dpad {
             position: absolute; bottom: 20px; left: 20px;
-            width: 120px; height: 120px;
-            display: none;
-            opacity: 0.5; z-index: 50;
+            width: 175px; height: 175px;
+            display: none; opacity: 0.7; z-index: 300;
+            touch-action: none;
         }
-        .dbtn { 
-            position: absolute; background: rgba(255,255,255,0.2); 
-            border: 2px solid #fff; border-radius: 8px;
+        .dbtn {
+            position: absolute; background: rgba(30,30,60,0.55);
+            border: 2px solid rgba(255,255,255,0.55); border-radius: 12px;
             display: flex; justify-content: center; align-items: center;
+            touch-action: none; transition: background 0.08s;
         }
-        .dbtn svg { width: 20px; height: 20px; fill: #fff; }
-        .dbtn:active { background: rgba(255,255,255,0.5); }
-        #btn-up { top: 0; left: 40px; width: 40px; height: 40px; }
-        #btn-down { bottom: 0; left: 40px; width: 40px; height: 40px; }
-        #btn-left { top: 40px; left: 0; width: 40px; height: 40px; }
-        #btn-right { top: 40px; right: 0; width: 40px; height: 40px; }
-        
+        .dbtn svg { width: 28px; height: 28px; fill: #fff; }
+        .dbtn.pressed, .dbtn:active { background: rgba(168,85,247,0.55); border-color: #a855f7; }
+        #btn-up    { top: 0;   left: 57px; width: 60px; height: 60px; }
+        #btn-down  { bottom:0; left: 57px; width: 60px; height: 60px; }
+        #btn-left  { top: 57px; left: 0;   width: 60px; height: 60px; }
+        #btn-right { top: 57px; right:0;   width: 60px; height: 60px; }
+        /* Centro decorativo del d-pad */
+        #dpad::after {
+            content:''; position:absolute; top:57px; left:57px;
+            width:60px; height:60px; border-radius:8px;
+            background:rgba(30,30,60,0.3); border:1px solid rgba(255,255,255,0.15);
+        }
+
         #btn-action {
-            position: absolute; bottom: 30px; right: 30px;
-            width: 60px; height: 60px; border-radius: 50%;
-            background: rgba(168,85,247,0.3); border: 3px solid #a855f7;
+            position: absolute; bottom: 25px; right: 20px;
+            width: 80px; height: 80px; border-radius: 50%;
+            background: rgba(168,85,247,0.25); border: 3px solid #a855f7;
             display: none; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 24px; color: #fff; z-index: 50;
-            opacity: 0.7; box-shadow: 0 0 10px #a855f7;
+            font-weight: bold; font-size: 28px; color: #fff; z-index: 300;
+            opacity: 0.82; box-shadow: 0 0 16px #a855f7; touch-action: none;
         }
-        #btn-action:active { background: rgba(168,85,247,0.7); transform: scale(0.95); }
+        #btn-action.pressed, #btn-action:active { background: rgba(168,85,247,0.7); transform: scale(0.93); }
+
+        /* Toggle de gamepad (escritorio + tablets) */
+        #gamepad-toggle {
+            position: absolute; top: 10px; right: 10px;
+            width: 34px; height: 34px; border-radius: 8px;
+            background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; cursor: pointer; z-index: 300; opacity: 0.65;
+            user-select: none;
+        }
+        #gamepad-toggle:hover { opacity: 1; }
 
         /* --- UI & MODALS --- */
         #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
@@ -164,14 +182,25 @@
         </div>
     </div>
 
+    <!-- Toggle gamepad -->
+    <div id="gamepad-toggle" title="Mostrar/ocultar controles">🎮</div>
+
     <!-- Controles táctiles -->
     <div id="dpad">
-        <div class="dbtn" id="btn-up"><svg viewBox="0 0 24 24"><path d="M12 4l-8 8h16z"/></svg></div>
-        <div class="dbtn" id="btn-down"><svg viewBox="0 0 24 24"><path d="M12 20l8-8H4z"/></svg></div>
-        <div class="dbtn" id="btn-left"><svg viewBox="0 0 24 24"><path d="M4 12l8-8v16z"/></svg></div>
-        <div class="dbtn" id="btn-right"><svg viewBox="0 0 24 24"><path d="M20 12l-8 8V4z"/></svg></div>
+        <div class="dbtn" id="btn-up">
+            <svg viewBox="0 0 24 24"><path d="M12 5l-8 9h16z"/></svg>
+        </div>
+        <div class="dbtn" id="btn-down">
+            <svg viewBox="0 0 24 24"><path d="M12 19l8-9H4z"/></svg>
+        </div>
+        <div class="dbtn" id="btn-left">
+            <svg viewBox="0 0 24 24"><path d="M5 12l9-8v16z"/></svg>
+        </div>
+        <div class="dbtn" id="btn-right">
+            <svg viewBox="0 0 24 24"><path d="M19 12l-9 8V4z"/></svg>
+        </div>
     </div>
-    <div id="btn-action">A</div>
+    <div id="btn-action">⚡</div>
 </div>
 
 <script>
@@ -180,12 +209,24 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
+    || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || window.innerWidth < 768
+    || new URLSearchParams(location.search).has('mobile');
 
-if(isTouch) {
-    document.getElementById('dpad').style.display = 'block';
-    document.getElementById('btn-action').style.display = 'flex';
+let padVisible = isTouch;
+function setPadVisible(v) {
+    padVisible = v;
+    document.getElementById('dpad').style.display = v ? 'block' : 'none';
+    document.getElementById('btn-action').style.display = v ? 'flex' : 'none';
 }
+setPadVisible(padVisible);
+
+// Toggle gamepad desde escritorio
+document.getElementById('gamepad-toggle').addEventListener('click', () => setPadVisible(!padVisible));
+
+// Vibración háptica
+function haptic(ms=28) { try { if(navigator.vibrate) navigator.vibrate(ms); } catch(e){} }
 
 const CW = 480; const CH = 270;
 const TSIZE = 32;
@@ -232,14 +273,15 @@ const WIZ_ANIMS = {
     cast: { y: 96, x: 0, step: 32, frames: 4, w: 32, h: 32 }
 };
 
-const dragonSheet = new Image();
-dragonSheet.src = 'assets/dragon/dragon_sheet.png';
-let dragonLoaded = false;
-dragonSheet.onload = () => { dragonLoaded = true; };
+const dragonIdleImg = new Image(); dragonIdleImg.src = 'assets/dragon/dragon_sprite_sheet%202.png';
+const dragonLeftImg = new Image(); dragonLeftImg.src = 'assets/dragon/dragon_sprite_sheet%202%20(1).png';
+const dragonAttackImg = new Image(); dragonAttackImg.src = 'assets/dragon/dragon_sprite_sheet%202%20(2).png';
+let dragonLoadedCount = 0;
+dragonIdleImg.onload = dragonLeftImg.onload = dragonAttackImg.onload = () => { dragonLoadedCount++; };
 
 const DRAGON_ANIMS = {
-    idle: { y: 0, x: 0, step: 128, frames: 4, w: 128, h: 128 },
-    attack: { y: 128, x: 0, step: 128, frames: 4, w: 128, h: 128 }
+    idle: { frames: 1 },
+    attack: { frames: 1 }
 };
 
 const lampWallImg = new Image();
@@ -259,6 +301,37 @@ const lampHangingBlueImg = new Image(); lampHangingBlueImg.src = 'assets/decor/l
 const lampHangingBronzeImg = new Image(); lampHangingBronzeImg.src = 'assets/decor/lamp_hanging_bronze.png';
 let sceneryLoaded = 0;
 swordStoneImg.onload = gargoyleImg.onload = candelabraImg.onload = cageImg.onload = mushroomsImg.onload = castleDoorImg.onload = lampHangingBlueImg.onload = lampHangingBronzeImg.onload = () => { sceneryLoaded++; };
+
+// Textura de pared (00.png) + spritesheet de cofres
+const wallTexImg = new Image(); wallTexImg.src = 'assets/00.png';
+let wallTexReady = false; wallTexImg.onload = () => { wallTexReady = true; };
+const chestSheetImg = new Image(); chestSheetImg.src = 'assets/chests-small-alpha.png';
+let chestSheetReady = false; chestSheetImg.onload = () => { chestSheetReady = true; };
+const CHEST_FRAME_W = 29; // 117px / 4 frames ≈ 29px
+const CHEST_FRAME_H = 32;
+const CHEST_SCALE = 2.2;
+
+function drawChestSprite(ctx, wx, wy, opened) {
+    if(!chestSheetReady) return;
+    const frameIdx = opened ? 3 : 0; // frame 0=cerrado, frame 3=abierto
+    const fw = CHEST_FRAME_W * CHEST_SCALE;
+    const fh = CHEST_FRAME_H * CHEST_SCALE;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(chestSheetImg,
+        frameIdx * CHEST_FRAME_W, 0, CHEST_FRAME_W, CHEST_FRAME_H,
+        wx - fw/2, wy - fh, fw, fh);
+    // Glow dorado cuando está abierto
+    if(opened) {
+        const glow = 0.3 + Math.abs(Math.sin(performance.now()/400)) * 0.3;
+        const g = ctx.createRadialGradient(wx, wy - fh/2, 0, wx, wy - fh/2, 30);
+        g.addColorStop(0, `rgba(251,191,36,${glow})`);
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(wx, wy - fh/2, 30, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+}
 
 /* === AUDIO SYSTEM === */
 let audioCtx = null;
@@ -558,6 +631,8 @@ const LEVEL_DEFS = {
         mapW: 30, mapH: 20,
         f0: '#0a0a0f', f1: '#0e0e14', wall: '#050508',
         light: 'rgba(56,189,248,0.1)', pType: 'magic',
+        wallTint: 'rgba(56,80,120,0.25)', wallEdge: 'rgba(80,120,180,0.45)',
+        playerLight: '140,160,220',
         playerStart: {x: 480, y: 500},
         entities: [
             { type:'door', target:'level1', x:160, y:140, r:45, color:'#38bdf8', label:'I. El Problema', customImg:true },
@@ -614,30 +689,68 @@ const LEVEL_DEFS = {
         name: 'I. El Problema', mapW: 24, mapH: 16,
         f0: '#131e28', f1: '#192436', wall: '#0f172a',
         light: 'rgba(56,189,248,0.18)', pType: 'dust',
+        wallTint: 'rgba(10,30,60,0.35)', wallEdge: 'rgba(30,100,180,0.4)',
+        playerLight: '100,160,220',
         playerStart: {x: 384, y: 400},
         outliers: [],
+        // Pasillos/pilares internos que crean chokepoints
+        pillars: [
+            {x:96,  y:80,  w:160, h:16},
+            {x:256, y:192, w:16,  h:128},
+            {x:96,  y:240, w:128, h:16},
+            {x:480, y:96,  w:16,  h:128},
+            {x:540, y:208, w:160, h:16},
+            {x:352, y:128, w:128, h:16},
+            {x:464, y:128, w:16,  h:96},
+            {x:192, y:320, w:192, h:16},
+            {x:560, y:304, w:16,  h:96},
+        ],
         init: function() {
             this.outliers = [];
-            for(let i=0; i<6; i++) {
+            const speeds = [240, 270, 300, 340, 370, 400, 330, 360]; // 8 orbes, 2 velocidades
+            for(let i=0; i<8; i++) {
+                const spd = speeds[i];
+                const angle = Math.random() * Math.PI * 2;
                 this.outliers.push({
-                    x: 200 + Math.random()*400, y: 100 + Math.random()*200,
-                    vx: (Math.random()-0.5)*300, vy: (Math.random()-0.5)*300, r: 6
+                    x: 150 + Math.random()*460, y: 80 + Math.random()*280,
+                    vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+                    r: i < 4 ? 7 : 5,
+                    color: i < 4 ? '#38bdf8' : '#7dd3fc'
                 });
             }
         },
         update: function(dt) {
+            const bnd = { x1:TSIZE+8, x2:this.mapW*TSIZE-TSIZE-8, y1:TSIZE+8, y2:this.mapH*TSIZE-TSIZE-8 };
             this.outliers.forEach(o => {
-                o.x += o.vx * dt; o.y += o.vy * dt;
-                if(o.x < TSIZE+o.r || o.x > this.mapW*TSIZE - TSIZE - o.r) o.vx *= -1;
-                if(o.y < TSIZE+o.r || o.y > this.mapH*TSIZE - TSIZE - o.r) o.vy *= -1;
+                o.x += o.vx*dt; o.y += o.vy*dt;
+                if(o.x < bnd.x1 || o.x > bnd.x2) { o.vx *= -1; o.x = Math.max(bnd.x1, Math.min(bnd.x2, o.x)); }
+                if(o.y < bnd.y1 || o.y > bnd.y2) { o.vy *= -1; o.y = Math.max(bnd.y1, Math.min(bnd.y2, o.y)); }
+                // Rebotar en pilares
+                this.pillars.forEach(p => {
+                    if(o.x > p.x-o.r && o.x < p.x+p.w+o.r && o.y > p.y-o.r && o.y < p.y+p.h+o.r) {
+                        o.vx *= -1; o.vy *= -1;
+                    }
+                });
+                // Colisión con jugador → knockback (no reset total)
                 if(dist(player.x, player.y, o.x, o.y) < o.r + 10) {
-                    player.x = this.playerStart.x; player.y = this.playerStart.y;
-                    triggerScreenShake();
+                    const ang = Math.atan2(player.y - o.y, player.x - o.x);
+                    player.x += Math.cos(ang) * 50;
+                    player.y += Math.sin(ang) * 50;
+                    player.x = Math.max(bnd.x1, Math.min(bnd.x2, player.x));
+                    player.y = Math.max(bnd.y1, Math.min(bnd.y2, player.y));
+                    triggerScreenShake(); haptic(40);
+                }
+            });
+            // Colisión del jugador con pilares
+            const r = 12;
+            this.pillars.forEach(p => {
+                if(player.x > p.x-r && player.x < p.x+p.w+r && player.y > p.y-r && player.y < p.y+p.h+r) {
+                    player.x = player.oldX || player.x; player.y = player.oldY || player.y;
                 }
             });
         },
         entities: [
-            { type:'chest', id:'gem1', x:384, y:200, r:30, title:'Intercambiabilidad', 
+            { type:'chest', id:'gem1', x:192, y:120, r:30, title:'Intercambiabilidad',
               text:'¿Qué concepto de De Finetti justifica tratar a turistas de la misma ciudad como si vinieran de una misma distribución poblacional?',
               opts: [{t:'Intercambiabilidad Completa',c:0},{t:'Intercambiabilidad Parcial',c:1},{t:'Independencia Estricta',c:0}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
@@ -648,51 +761,86 @@ const LEVEL_DEFS = {
         ],
         decor: (ctx, scx, scy) => {
             const def = LEVEL_DEFS['level1'];
-            def.outliers.forEach(o => {
-                ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r, 0, Math.PI*2); ctx.fill();
+            // Dibujar pilares con textura
+            def.pillars.forEach(p => {
+                ctx.fillStyle = '#1e2d40';
+                ctx.fillRect(p.x-scx, p.y-scy, p.w, p.h);
+                if(wallTexReady) {
+                    ctx.globalAlpha = 0.45;
+                    ctx.drawImage(wallTexImg, p.x-scx, p.y-scy, p.w, p.h);
+                    ctx.globalAlpha = 1;
+                }
+                ctx.strokeStyle = 'rgba(56,189,248,0.5)'; ctx.lineWidth = 1;
+                ctx.strokeRect(p.x-scx, p.y-scy, p.w, p.h);
             });
-        }
-    },
-    dragon: {
-        name: 'El Dragón Rojo', mapW: 24, mapH: 16,
-        f0: '#000', f1: '#050505', wall: '#111',
-        light: 'rgba(239,68,68,0.2)', pType: 'lava',
-        playerStart: {x: 384, y: 400},
-        init: function() {},
-        update: function(dt) {},
-        entities: [
-            { type:'dragon', x:384, y:180, r:60, defeated:false, phase2:false, title:'El Gran Dragón Rojo', 
-              text:'¡Soy el Guardián de la Incertidumbre! ¿Qué modelo bayesiano es mejor para estimar parámetros en grupos con diferentes tamaños de muestra?',
-              opts: [{t:'Jerárquico (Partial Pooling)',c:1},{t:'No Jerárquico (No Pooling)',c:0}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Huir al Hub' },
-            { type:'decor', img:'candelabra', x:200, y:150, scale:2 },
-            { type:'decor', img:'candelabra', x:568, y:150, scale:2 }
-        ],
-        decor: (ctx, scx, scy) => {
-            ctx.fillStyle = 'rgba(239,68,68,0.05)';
-            ctx.fillRect(0, 0, CW, CH);
+            // Dibujar orbes
+            def.outliers.forEach(o => {
+                const grd = ctx.createRadialGradient(o.x-scx, o.y-scy, 0, o.x-scx, o.y-scy, o.r*2);
+                grd.addColorStop(0, o.color); grd.addColorStop(1, 'transparent');
+                ctx.fillStyle = grd;
+                ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r*2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r, 0, Math.PI*2); ctx.fill();
+            });
         }
     },
     level2: {
         name: 'II. Pooling', mapW: 24, mapH: 16,
         f0: '#1a0b2e', f1: '#210e3b', wall: '#150826',
         light: 'rgba(168,85,247,0.15)', pType: 'dust',
+        wallTint: 'rgba(80,20,120,0.30)', wallEdge: 'rgba(140,60,200,0.40)',
+        playerLight: '160,100,220',
         playerStart: {x: 384, y: 400},
-        plates: [{x:160,y:200,on:false},{x:384,y:100,on:false},{x:600,y:200,on:false}],
+        // 6 placas repartidas en toda la sala — orden 1→2→3→4→5→6
+        plates: [
+            {x:128, y:380, on:false, order:1},
+            {x:608, y:120, on:false, order:2},
+            {x:240, y:160, on:false, order:3},
+            {x:530, y:340, on:false, order:4},
+            {x:384, y:240, on:false, order:5},
+            {x:160, y:270, on:false, order:6},
+        ],
+        nextRequired: 1,
+        timer: 20,       // más tiempo porque hay más placas
         init: function() {
             this.plates.forEach(p => p.on = false);
+            this.nextRequired = 1;
+            this.timer = 20;
+        },
+        resetPlates: function() {
+            this.plates.forEach(p => p.on = false);
+            this.nextRequired = 1;
+            this.timer = 20;
+            triggerScreenShake(); haptic(60);
         },
         update: function(dt) {
-            let allOn = true;
+            const allOn = this.plates.every(p => p.on);
+            if(allOn) { this.timer = 15; return; } // ya resuelto
+
+            // Cuenta regresiva
+            this.timer -= dt;
+            if(this.timer <= 0) { this.resetPlates(); return; }
+
+            // Detectar pisada de placa
             this.plates.forEach(p => {
-                if(dist(player.x, player.y, p.x, p.y) < 25 && !p.on) { p.on = true; playSound('step'); }
-                if(!p.on) allOn = false;
+                if(!p.on && dist(player.x, player.y, p.x, p.y) < 28) {
+                    if(p.order === this.nextRequired) {
+                        p.on = true;
+                        this.nextRequired++;
+                        playSound('step');
+                        haptic(30);
+                    } else {
+                        // Orden incorrecto → reset
+                        this.resetPlates();
+                    }
+                }
             });
+
             const gem = activeEntities.find(e => e.id === 'gem2');
             if(gem) gem.active = allOn || gems.gem2;
         },
         entities: [
-            { type:'chest', id:'gem2', x:384, y:240, r:30, title:'Pooling', 
+            { type:'chest', id:'gem2', x:384, y:240, r:30, title:'Pooling',
               text:'¿Cuál es el problema principal del enfoque de "No-Pooling" cuando analizamos grupos con pocos datos?',
               opts: [{t:'Asume que todos los grupos son idénticos.',c:0},{t:'Genera estimaciones con alta varianza al no compartir información.',c:1}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
@@ -701,101 +849,409 @@ const LEVEL_DEFS = {
         ],
         decor: (ctx, scx, scy) => {
             const def = LEVEL_DEFS['level2'];
+            const allOn = def.plates.every(p => p.on);
+
+            // Barra de timer (solo cuando no están todas activas)
+            if(!allOn && !gems.gem2) {
+                const bw = 200, bh = 10;
+                const bx = CW/2 - bw/2, by = 18;
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(bx, by, bw, bh);
+                const pct = def.timer / 15;
+                ctx.fillStyle = pct > 0.4 ? '#a855f7' : '#ef4444';
+                ctx.fillRect(bx, by, bw * pct, bh);
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
+                ctx.strokeRect(bx, by, bw, bh);
+                ctx.fillStyle = '#fff'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+                ctx.fillText(`${Math.ceil(def.timer)}s`, CW/2, by + bh + 10);
+                ctx.font = '7px monospace'; ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(200,180,255,0.6)';
+                ctx.fillText(`Siguiente: placa ${def.nextRequired}`, CW/2, by + bh + 20);
+                ctx.textAlign = 'left';
+
+                // Instrucción de orden
+                ctx.fillStyle = 'rgba(168,85,247,0.8)'; ctx.font = '7px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('Pisa en orden: 1 → 2 → 3', CW/2, 46);
+                ctx.textAlign = 'left';
+            }
+
+            // Dibujar placas con número
             def.plates.forEach(p => {
-                ctx.fillStyle = p.on ? '#a855f7' : '#333';
-                ctx.fillRect(p.x-16-scx, p.y-16-scy, 32, 32);
-                ctx.strokeStyle = p.on ? '#d8b4fe' : '#555';
-                ctx.strokeRect(p.x-16-scx, p.y-16-scy, 32, 32);
+                ctx.fillStyle = p.on ? '#7c3aed' : '#2d1b4e';
+                ctx.fillRect(p.x-18-scx, p.y-18-scy, 36, 36);
+                ctx.strokeStyle = p.on ? '#c4b5fd' : (p.order === def.nextRequired ? '#fbbf24' : '#4c1d95');
+                ctx.lineWidth = p.order === def.nextRequired && !p.on ? 2.5 : 1.5;
+                ctx.strokeRect(p.x-18-scx, p.y-18-scy, 36, 36);
+                // Número de orden
+                ctx.fillStyle = p.on ? '#c4b5fd' : (p.order === def.nextRequired ? '#fbbf24' : '#6d28d9');
+                ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
+                ctx.fillText(p.order, p.x-scx, p.y-scy+5);
+                ctx.textAlign = 'left';
+                // Glow si es la siguiente
+                if(p.order === def.nextRequired && !p.on) {
+                    const pulse = Math.abs(Math.sin(performance.now()/400));
+                    ctx.fillStyle = `rgba(251,191,36,${pulse*0.15})`;
+                    ctx.beginPath(); ctx.arc(p.x-scx, p.y-scy, 30, 0, Math.PI*2); ctx.fill();
+                }
             });
         }
     },
     level3: {
         name: 'III. Jerárquico', mapW: 24, mapH: 16,
         f0: '#06160d', f1: '#091f13', wall: '#040d08',
-        light: 'rgba(16,185,129,0.15)', pType: 'magic',
-        playerStart: {x: 384, y: 400},
-        walls: [{x:250, y:120, w:60, h:180}, {x:458, y:120, w:60, h:180}],
+        light: 'rgba(16,185,129,0.10)', pType: 'magic',
+        wallTint: 'rgba(0,60,30,0.40)', wallEdge: 'rgba(20,140,80,0.35)',
+        playerLight: '80,180,120',
+        playerStart: {x: 384, y: 455},
+        // Laberinto denso — la ruta correcta va: centro→izquierda→arriba→derecha→cofre (esq. superior derecha)
+        walls: [
+            // Fila de separación superior — bloquea acceso directo al cofre
+            {x:48,  y:96,  w:336, h:16},  // muro sup izquierdo
+            {x:432, y:96,  w:288, h:16},  // muro sup derecho (deja paso a x=384-432)
+            // Columna central vertical
+            {x:336, y:96,  w:16,  h:192}, // columna central izq
+            {x:432, y:96,  w:16,  h:112}, // columna central der (gap en y=208)
+            // Laberinto izquierdo
+            {x:48,  y:176, w:192, h:16},  // muro horizontal izq
+            {x:48,  y:176, w:16,  h:128}, // columna izq (cierra el corredor)
+            {x:128, y:256, w:96,  h:16},  // muro inferior izq
+            {x:192, y:176, w:16,  h:96},  // columna media izq
+            // Laberinto derecho
+            {x:528, y:160, w:192, h:16},  // muro horizontal der
+            {x:704, y:96,  w:16,  h:160}, // columna der
+            {x:528, y:256, w:96,  h:16},  // muro inferior der
+            {x:528, y:160, w:16,  h:112}, // columna izq der
+            // Pasillo bajo — separación inferior
+            {x:208, y:336, w:352, h:16},  // bloquea centro inferior
+            {x:208, y:336, w:16,  h:96},  // columna izq del bloqueo
+            {x:560, y:336, w:16,  h:96},  // columna der del bloqueo
+        ],
         init: function() {},
         update: function(dt) {
-            const px = player.x; const py = player.y; const r = 12;
+            const px = player.x, py = player.y, r = 13;
             this.walls.forEach(w => {
-                if(px > w.x - r && px < w.x + w.w + r && py > w.y - r && py < w.y + w.h + r) {
-                    player.x = player.oldX || player.x; player.y = player.oldY || player.y;
+                if(px+r > w.x && px-r < w.x+w.w && py+r > w.y && py-r < w.y+w.h) {
+                    player.x = player.oldX || player.x;
+                    player.y = player.oldY || player.y;
                 }
             });
         },
         entities: [
-            { type:'chest', id:'gem3', x:384, y:120, r:30, title:'Modelo Jerárquico', 
-              text:'En α_j ~ N(μ_α, σ_α), ¿qué representan μ_α y σ_α?',
-              opts: [{t:'La población de interceptos.',c:1},{t:'El error individual.',c:0}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
-            { type:'decor', img:'cage', x:150, y:100, scale:2 },
-            { type:'decor', img:'cage', x:618, y:100, scale:2 },
-            { type:'decor', img:'mushrooms', x:100, y:300, scale:1.5 },
-            { type:'decor', img:'mushrooms', x:684, y:350, scale:1.5 }
+            { type:'chest', id:'gem3', x:592, y:72, r:30, title:'Modelo Jerárquico',
+              text:'En α_j ~ N(μ_α, σ_α), ¿qué representan μ_α y σ_α en el contexto bayesiano?',
+              opts: [{t:'La población de interceptos entre grupos.',c:1},{t:'El error de medición individual.',c:0},{t:'La varianza residual del modelo.',c:0}] },
+            { type:'door', target:'hub', x:384, y:470, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
+            // Jaulas en los callejones sin salida del laberinto
+            { type:'decor', img:'cage', x:96, y:220, scale:1.6 },
+            { type:'decor', img:'cage', x:640, y:220, scale:1.6 },
+            // Hongos en esquinas oscuras del laberinto
+            { type:'decor', img:'mushrooms', x:80, y:420, scale:1.4 },
+            { type:'decor', img:'mushrooms', x:680, y:420, scale:1.4 },
+            { type:'decor', img:'mushrooms', x:280, y:155, scale:1.2 },
+            { type:'decor', img:'mushrooms', x:490, y:155, scale:1.2 },
+            // Lámparas en las bifurcaciones para orientar
+            { type:'floating_lamp', color:'blue', x:220, y:300 },
+            { type:'floating_lamp', color:'blue', x:540, y:300 },
+            { type:'floating_lamp', color:'bronze', x:384, y:200 },
         ],
         decor: (ctx, scx, scy) => {
             const def = LEVEL_DEFS['level3'];
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
             def.walls.forEach(w => {
-                ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
+                // Relleno oscuro con patrón de piedra si disponible
+                if(wallTexReady) {
+                    ctx.globalAlpha = 0.7;
+                    ctx.drawImage(wallTexImg,
+                        (w.x % 60), (w.y % 60), Math.min(60, w.w), Math.min(60, w.h),
+                        w.x-scx, w.y-scy, w.w, w.h);
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillStyle = '#030a06';
+                    ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
+                } else {
+                    ctx.fillStyle = '#030a06';
+                    ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
+                }
+                ctx.globalAlpha = 1;
+                ctx.strokeStyle = 'rgba(16,185,129,0.25)'; ctx.lineWidth = 1;
+                ctx.strokeRect(w.x-scx, w.y-scy, w.w, w.h);
             });
+            // Flecha pulsante hacia el cofre desde el inicio
+            if(!gems.gem3) {
+                const t = performance.now()/1000;
+                const pulse = 0.4 + Math.abs(Math.sin(t*1.5)) * 0.5;
+                ctx.fillStyle = `rgba(16,185,129,${pulse})`;
+                ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
+                ctx.fillText('↑ Encuentra el cofre en el laberinto', CW/2, 18);
+                ctx.textAlign = 'left';
+            }
         }
     },
     level4: {
         name: 'IV. Shrinkage', mapW: 24, mapH: 16,
         f0: '#2a1a08', f1: '#32200a', wall: '#1c1004',
         light: 'rgba(251,191,36,0.15)', pType: 'dust',
+        wallTint: 'rgba(80,50,0,0.35)', wallEdge: 'rgba(180,120,20,0.40)',
+        playerLight: '220,170,80',
         playerStart: {x: 384, y: 400},
-        init: function() {},
+        windTimer: 0, windActive: 0, windDir: 1, windDuration: 0,
+        // Orbes patrulleros (anomalías de shrinkage) en 4 alturas distintas
+        patrols: [],
+        init: function() {
+            this.windTimer = 5;
+            this.windActive = 0;
+            this.windDir = 1;
+            this.windDuration = 0;
+            // 4 orbes que se mueven horizontalmente en diferentes alturas
+            this.patrols = [
+                {x:150, y:340, minX:80,  maxX:500, spd:90,  dir:1,  r:14, col:'#fbbf24'},
+                {x:600, y:270, minX:300, maxX:680, spd:130, dir:-1, r:12, col:'#f59e0b'},
+                {x:200, y:200, minX:80,  maxX:600, spd:110, dir:1,  r:14, col:'#fbbf24'},
+                {x:500, y:140, minX:180, maxX:680, spd:150, dir:-1, r:12, col:'#ef4444'},
+            ];
+        },
         update: function(dt) {
             const midX = 384;
-            if (player.x < midX - 15) player.x += 160 * dt;
-            if (player.x > midX + 15) player.x -= 160 * dt;
+            const mapLeft = TSIZE * 2 + 16;
+            const mapRight = this.mapW * TSIZE - TSIZE * 2 - 16;
+
+            // Gravedad de shrinkage
+            if(player.x < midX - 15) player.x += 190 * dt;
+            if(player.x > midX + 15) player.x -= 190 * dt;
+
+            // Viento cada ~5s
+            this.windTimer -= dt;
+            if(this.windTimer <= 0 && this.windActive === 0) {
+                this.windDir = Math.random() < 0.5 ? 1 : -1;
+                this.windActive = 1;
+                this.windDuration = 0.8;
+                this.windTimer = 5 + Math.random() * 2;
+            }
+            if(this.windActive) {
+                this.windDuration -= dt;
+                player.x += this.windDir * 230 * dt;
+                if(this.windDuration <= 0) this.windActive = 0;
+            }
+
+            // Mover orbes patrulleros
+            this.patrols.forEach(o => {
+                o.x += o.spd * o.dir * dt;
+                if(o.x >= o.maxX) { o.x = o.maxX; o.dir = -1; }
+                if(o.x <= o.minX) { o.x = o.minX; o.dir = 1; }
+                // Colisión con jugador → knockback fuerte
+                if(dist(player.x, player.y, o.x, o.y) < o.r + 10) {
+                    const ang = Math.atan2(player.y - o.y, player.x - o.x);
+                    player.x += Math.cos(ang) * 55;
+                    player.y += Math.sin(ang) * 55;
+                    triggerScreenShake(); haptic(50);
+                }
+            });
+
+            // Muros laterales → reset
+            if(player.x < mapLeft || player.x > mapRight) {
+                player.x = this.playerStart.x;
+                player.y = this.playerStart.y;
+                this.windActive = 0;
+                triggerScreenShake(); haptic(80);
+            }
         },
         entities: [
-            { type:'chest', id:'gem4', x:384, y:120, r:30, title:'Shrinkage', 
-              text:'¿Qué factor λ_j determina la fuerza del shrinkage?',
-              opts: [{t:'Varianza del grupo.',c:0},{t:'Tamaño de muestra n.',c:1}] },
+            { type:'chest', id:'gem4', x:384, y:120, r:30, title:'Shrinkage',
+              text:'¿Qué factor λ_j determina la fuerza del shrinkage bayesiano?',
+              opts: [{t:'La varianza del modelo global.',c:0},{t:'El tamaño de muestra n_j del grupo.',c:1},{t:'La media a priori μ_α.',c:0}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
             { type:'floating_lamp', color:'bronze', x:200, y:250 },
             { type:'floating_lamp', color:'bronze', x:568, y:250 }
         ],
         decor: (ctx, scx, scy) => {
-            ctx.fillStyle = 'rgba(251,191,36,0.1)';
-            ctx.fillRect(360-scx, 0-scy, 48, 16*TSIZE);
+            const def = LEVEL_DEFS['level4'];
+            // Línea central dorada
+            ctx.fillStyle = 'rgba(251,191,36,0.10)';
+            ctx.fillRect(360-scx, 0, 48, CH+100);
+            // Flechas doradas apuntando al centro en el suelo
+            for(let y=100; y<500; y+=80) {
+                const alpha = 0.12 + Math.abs(Math.sin(performance.now()/600+y*0.01))*0.08;
+                ctx.fillStyle = `rgba(251,191,36,${alpha})`;
+                ctx.font = '10px monospace'; ctx.textAlign = 'center';
+                ctx.fillText('←  μ  →', 384-scx, y-scy);
+            }
+            ctx.textAlign = 'left';
+
+            // Orbes patrulleros con glow
+            def.patrols.forEach(o => {
+                const t = performance.now()/500;
+                const pulse = 0.5 + Math.sin(t) * 0.3;
+                const g = ctx.createRadialGradient(o.x-scx, o.y-scy, 0, o.x-scx, o.y-scy, o.r*2.5);
+                g.addColorStop(0, o.col);
+                g.addColorStop(0.4, o.col.replace(')', ', 0.4)').replace('rgb', 'rgba') || `rgba(251,191,36,0.4)`);
+                g.addColorStop(1, 'transparent');
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r*2.5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = o.col;
+                ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r, 0, Math.PI*2); ctx.fill();
+                // Núcleo blanco
+                ctx.fillStyle = `rgba(255,255,255,${pulse})`;
+                ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r*0.35, 0, Math.PI*2); ctx.fill();
+                // Trayectoria (línea tenue)
+                ctx.strokeStyle = `rgba(251,191,36,0.1)`; ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(o.minX-scx, o.y-scy); ctx.lineTo(o.maxX-scx, o.y-scy);
+                ctx.stroke();
+            });
+
+            // Indicador de viento
+            if(def.windActive) {
+                const alpha = 0.6 + Math.abs(Math.sin(performance.now()/180)) * 0.4;
+                ctx.fillStyle = `rgba(251,191,36,${alpha})`;
+                ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
+                ctx.fillText(def.windDir > 0 ? '→ VIENTO →' : '← VIENTO ←', CW/2, 30);
+                ctx.textAlign = 'left';
+            }
+
+            // Barra de shrinkage
+            const maxDev = (24*TSIZE/2 - TSIZE*2);
+            const dev = Math.abs(player.x - 384) / maxDev;
+            const bh = 80, bw = 10;
+            const bx = CW - 22, by = (CH - bh)/2;
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx, by, bw, bh);
+            ctx.fillStyle = dev > 0.7 ? '#ef4444' : dev > 0.4 ? '#fbbf24' : '#10b981';
+            ctx.fillRect(bx, by + bh*(1-dev), bw, bh*dev);
+            ctx.strokeStyle = 'rgba(160,120,20,0.4)'; ctx.lineWidth=1; ctx.strokeRect(bx, by, bw, bh);
+            ctx.fillStyle='rgba(200,160,40,0.7)'; ctx.font='6px monospace'; ctx.textAlign='center';
+            ctx.fillText('σ', bx+bw/2, by+bh+10); ctx.textAlign='left';
         }
     },
     level5: {
         name: 'V. Inferencia', mapW: 24, mapH: 16,
         f0: '#1a0505', f1: '#220808', wall: '#140303',
         light: 'rgba(239,68,68,0.22)', pType: 'lava',
-        playerStart: {x: 384, y: 400},
-        pools: [{x:240, y:200, r:40, offset:0}, {x:520, y:280, r:50, offset:Math.PI}],
-        init: function() {},
+        wallTint: 'rgba(100,10,10,0.40)', wallEdge: 'rgba(200,40,20,0.35)',
+        playerLight: '220,80,40',
+        playerStart: {x: 384, y: 430},
+        // Pozas reposicionadas dentro del corredor forzado
+        pools: [
+            {x:288, y:160, r:44, period:4.5, phase:0,    row:'top'},
+            {x:480, y:160, r:44, period:4.5, phase:2.25, row:'top'},
+            {x:288, y:280, r:36, period:3.5, phase:1.5,  row:'bot'},
+            {x:480, y:280, r:36, period:3.5, phase:3.0,  row:'bot'},
+        ],
+        spikes: [{x:256,y:340,r:18},{x:384,y:320,r:18},{x:512,y:340,r:18}],
+        // Paredes que cierran el bypass lateral y fuerzan pasar por los peligros
+        walls: [
+            {x:48,  y:88,  w:16, h:352},
+            {x:704, y:88,  w:16, h:352},
+            {x:64,  y:112, w:160, h:16},
+            {x:544, y:112, w:176, h:16},
+            {x:64,  y:224, w:128, h:16},
+            {x:576, y:224, w:160, h:16},
+        ],
+        chestOpen: false,  // se abre solo cuando las dos pozas superiores están inactivas
+        init: function() {
+            this.pools.forEach(p => { p.active = false; });
+            this.chestOpen = false;
+        },
         update: function(dt) {
-            const t = performance.now()/400;
+            const t = performance.now()/1000;
             this.pools.forEach(p => {
-                p.active = Math.sin(t + p.offset) > 0.4;
-                if(p.active && dist(player.x, player.y, p.x, p.y) < p.r - 5) {
-                    player.y = Math.min(player.y + 40, 16*TSIZE-TSIZE);
-                    triggerScreenShake();
+                p.active = Math.sin((t / p.period) * Math.PI * 2 + p.phase) > 0.3;
+                if(p.active && dist(player.x, player.y, p.x, p.y) < p.r) {
+                    // Knockback empujando hacia afuera
+                    const ang = Math.atan2(player.y - p.y, player.x - p.x);
+                    player.x += Math.cos(ang) * 60;
+                    player.y += Math.sin(ang) * 60;
+                    player.x = Math.max(TSIZE, Math.min(this.mapW*TSIZE-TSIZE, player.x));
+                    player.y = Math.max(TSIZE, Math.min(this.mapH*TSIZE-TSIZE, player.y));
+                    triggerScreenShake(); haptic(50);
                 }
             });
+
+            // Spikes: knockback si el jugador se acerca
+            this.spikes.forEach(sp => {
+                if(dist(player.x, player.y, sp.x, sp.y) < sp.r) {
+                    const ang = Math.atan2(player.y - sp.y, player.x - sp.x);
+                    player.x += Math.cos(ang) * 45;
+                    player.y += Math.sin(ang) * 45;
+                    triggerScreenShake(); haptic(35);
+                }
+            });
+
+            // Colisión con paredes del corredor
+            const pr = 12;
+            this.walls.forEach(w => {
+                if(player.x+pr > w.x && player.x-pr < w.x+w.w &&
+                   player.y+pr > w.y && player.y-pr < w.y+w.h) {
+                    player.x = player.oldX; player.y = player.oldY;
+                }
+            });
+
+            // Cofre accesible SOLO cuando las dos pozas superiores están inactivas
+            const topInactive = this.pools.filter(p=>p.row==='top').every(p=>!p.active);
+            this.chestOpen = topInactive;
+            const gem = activeEntities.find(e => e.id === 'gem5');
+            if(gem) gem.active = this.chestOpen || gems.gem5;
         },
         entities: [
-            { type:'chest', id:'gem5', x:384, y:120, r:30, title:'Geometría', 
-              text:'Para evitar el "Embudo de Neal", ¿qué usas?',
-              opts: [{t:'Centrada',c:0},{t:'No Centrada',c:1}] },
+            { type:'chest', id:'gem5', x:384, y:100, r:30, title:'Geometría del MCMC',
+              text:'Para evitar el "Embudo de Neal" en un modelo jerárquico con MCMC, ¿qué técnica usas?',
+              opts: [{t:'Parametrización Centrada',c:0},{t:'Parametrización No Centrada',c:1},{t:'Aumentar el número de cadenas',c:0}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
             { type:'decor', img:'cage', x:180, y:120, scale:2 },
             { type:'decor', img:'cage', x:588, y:120, scale:2 }
         ],
         decor: (ctx, scx, scy) => {
-            LEVEL_DEFS['level5'].pools.forEach(p => {
-                ctx.fillStyle = p.active ? '#ef4444' : '#450a0a';
-                ctx.beginPath(); ctx.ellipse(p.x-scx, p.y-scy, p.r, p.r/2, 0, 0, Math.PI*2); ctx.fill();
+            const def = LEVEL_DEFS['level5'];
+            const t = performance.now()/1000;
+
+            // Paredes del corredor con textura
+            def.walls.forEach(w => {
+                ctx.fillStyle = 'rgba(60,5,5,0.9)';
+                ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
+                if(wallTexReady) {
+                    ctx.globalAlpha = 0.55;
+                    ctx.drawImage(wallTexImg, w.x-scx, w.y-scy, w.w, w.h);
+                    ctx.globalAlpha = 1;
+                }
+                ctx.strokeStyle = 'rgba(200,40,20,0.45)'; ctx.lineWidth = 1.5;
+                ctx.strokeRect(w.x-scx, w.y-scy, w.w, w.h);
             });
+
+            // Pozas de lava — naranja-ámbar
+            def.pools.forEach(p => {
+                const glow = p.active ? (0.7 + Math.sin(t*8)*0.2) : 0.15;
+                ctx.fillStyle = p.active ? `rgba(249,115,22,${glow})` : 'rgba(100,30,10,0.4)';
+                ctx.beginPath(); ctx.ellipse(p.x-scx, p.y-scy, p.r, p.r*0.55, 0, 0, Math.PI*2); ctx.fill();
+                if(p.active) {
+                    const grad = ctx.createRadialGradient(p.x-scx, p.y-scy, 0, p.x-scx, p.y-scy, p.r*1.5);
+                    grad.addColorStop(0, 'rgba(253,186,116,0.4)'); grad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath(); ctx.arc(p.x-scx, p.y-scy, p.r*1.5, 0, Math.PI*2); ctx.fill();
+                }
+            });
+
+            // Spikes — gris metálico oscuro
+            def.spikes.forEach(sp => {
+                ctx.fillStyle = '#374151';
+                ctx.beginPath();
+                ctx.moveTo(sp.x-scx, sp.y-sp.r-scy);
+                ctx.lineTo(sp.x+sp.r*0.6-scx, sp.y+sp.r*0.5-scy);
+                ctx.lineTo(sp.x-sp.r*0.6-scx, sp.y+sp.r*0.5-scy);
+                ctx.closePath(); ctx.fill();
+                ctx.strokeStyle='#9ca3af'; ctx.lineWidth=1.2;
+                ctx.stroke();
+            });
+
+            // Indicador de ventana de acceso al cofre
+            if(!gems.gem5) {
+                const topInactive = def.pools.filter(p=>p.row==='top').every(p=>!p.active);
+                ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.font='7px monospace'; ctx.textAlign='center';
+                if(topInactive) {
+                    ctx.fillStyle = 'rgba(74,222,128,0.9)';
+                    ctx.fillText('▲ VENTANA ABIERTA — ¡VE AL COFRE!', CW/2, 20);
+                } else {
+                    ctx.fillStyle = 'rgba(239,68,68,0.7)';
+                    ctx.fillText('Espera a que las pozas superiores se apaguen...', CW/2, 20);
+                }
+                ctx.textAlign='left';
+            }
         }
     },
     dragon: {
@@ -843,15 +1299,44 @@ window.addEventListener('blur', () => {
     for(let k in touches) touches[k] = 0;
 });
 
-function bindBtn(id, key) {
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('touchstart', e=>{ e.preventDefault(); touches[key]=1; });
-    el.addEventListener('touchend', e=>{ e.preventDefault(); touches[key]=0; });
+// Mapeo id→key para lookup en touchmove
+const btnMap = { 'btn-up':'up','btn-down':'down','btn-left':'left','btn-right':'right','btn-action':'action' };
+const btnEls = {};
+Object.keys(btnMap).forEach(id => { btnEls[id] = document.getElementById(id); });
+
+function setTouch(key, val) {
+    if(touches[key] === val) return;
+    touches[key] = val;
+    const el = Object.entries(btnMap).find(([,k])=>k===key)?.[0];
+    if(el && btnEls[el]) btnEls[el].classList.toggle('pressed', val===1);
+    if(val===1) haptic(22);
 }
-bindBtn('btn-up', 'up'); bindBtn('btn-down', 'down');
-bindBtn('btn-left', 'left'); bindBtn('btn-right', 'right');
-bindBtn('btn-action', 'action');
+
+function bindBtn(id, key) {
+    const el = btnEls[id]; if(!el) return;
+    el.addEventListener('touchstart', e=>{ e.preventDefault(); setTouch(key,1); }, {passive:false});
+    el.addEventListener('touchend',   e=>{ e.preventDefault(); setTouch(key,0); }, {passive:false});
+    el.addEventListener('touchcancel',e=>{ setTouch(key,0); });
+}
+Object.entries(btnMap).forEach(([id,key]) => bindBtn(id, key));
+
+// touchmove global: detectar deslizamiento entre botones d-pad
+document.getElementById('dpad').addEventListener('touchmove', e => {
+    e.preventDefault();
+    const dpadKeys = ['up','down','left','right'];
+    // Resetear todos
+    dpadKeys.forEach(k => setTouch(k, 0));
+    // Activar el botón que está bajo cada punto de toque
+    Array.from(e.touches).forEach(t => {
+        Object.entries(btnEls).forEach(([id, el]) => {
+            if(!el || id==='btn-action') return;
+            const r = el.getBoundingClientRect();
+            if(t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+                setTouch(btnMap[id], 1);
+            }
+        });
+    });
+}, {passive:false});
 
 const player = {
     x: 0, y: 0, w: 16, h: 10, speed: 160, dir: 1, moving: false, animTimer: 0,
@@ -878,6 +1363,9 @@ const player = {
             this.animTimer = 0;
             stepSoundTimer = 0;
         }
+
+        // Guardar posición anterior (usada por colisión de muros de nivel)
+        this.oldX = this.x; this.oldY = this.y;
 
         let nx = this.x + dx * this.speed * dt;
         let ny = this.y + dy * this.speed * dt;
@@ -1183,11 +1671,13 @@ function drawLighting(ctx, scx, scy) {
     ctx.fillStyle = grad;
     ctx.fillRect(0,0,CW,CH);
 
-    // Spotlight del jugador
+    // Spotlight del jugador — luz cálida de linterna (no blanco puro)
     const px = player.x - scx; const py = player.y - scy - 10;
-    const pLight = ctx.createRadialGradient(px, py, 10, px, py, 150);
-    pLight.addColorStop(0, 'rgba(255,255,255,0.12)');
-    pLight.addColorStop(1, 'rgba(255,255,255,0)');
+    const lightColor = def.playerLight || '200,170,100';
+    const pLight = ctx.createRadialGradient(px, py, 8, px, py, 140);
+    pLight.addColorStop(0, `rgba(${lightColor},0.10)`);
+    pLight.addColorStop(0.5, `rgba(${lightColor},0.04)`);
+    pLight.addColorStop(1, `rgba(${lightColor},0)`);
     ctx.globalCompositeOperation = 'screen';
     ctx.fillStyle = pLight;
     ctx.fillRect(px-150, py-150, 300, 300);
@@ -1278,16 +1768,25 @@ function drawMap(ctx, def, scx, scy) {
                 });
             }
             if(isWall) {
-                // Cara superior (Efecto 2.5D brillante)
-                ctx.fillStyle = 'rgba(255,255,255,0.08)';
-                ctx.fillRect(tx, ty - wallHeight, TSIZE, TSIZE);
-                
-                // Cara frontal (La caída de la pared)
+                // Cara superior con textura de piedra (00.png) si está cargada
+                if(wallTexReady) {
+                    ctx.globalAlpha = 0.55;
+                    ctx.drawImage(wallTexImg, tx, ty - wallHeight, TSIZE, TSIZE);
+                    ctx.globalAlpha = 1;
+                    // Tinte temático del nivel sobre la textura
+                    ctx.fillStyle = def.wallTint || 'rgba(0,0,0,0.3)';
+                    ctx.fillRect(tx, ty - wallHeight, TSIZE, TSIZE);
+                } else {
+                    ctx.fillStyle = def.wallTint || 'rgba(100,90,80,0.2)';
+                    ctx.fillRect(tx, ty - wallHeight, TSIZE, TSIZE);
+                }
+
+                // Cara frontal
                 ctx.fillStyle = def.wall;
                 ctx.fillRect(tx, ty - wallHeight + TSIZE, TSIZE, wallHeight);
-                
-                // Borde superior para resaltar la esquina
-                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+
+                // Borde superior — color temático sutil (no blanco)
+                ctx.fillStyle = def.wallEdge || 'rgba(140,120,90,0.5)';
                 ctx.fillRect(tx, ty - wallHeight + TSIZE, TSIZE, 2);
             }
         }
@@ -1377,8 +1876,7 @@ function draw() {
         if(ent.type === 'player') {
             player.draw(ctx, cameraX, cameraY);
         } else if(ent.type === 'chest') {
-            const frame = gems[ent.id] ? SPRITES.chest_open : SPRITES.chest;
-            renderSprite(ctx, frame, ent.x - cameraX, ent.y - cameraY);
+            drawChestSprite(ctx, ent.x - cameraX, ent.y - cameraY, !!gems[ent.id]);
         } else if(ent.type === 'door') {
             const glow = Math.sin(performance.now()/200)*0.2 + 0.8;
             ctx.save();
@@ -1397,25 +1895,46 @@ function draw() {
             ctx.beginPath(); ctx.ellipse(ent.x - cameraX, ent.y - cameraY, 40, 15, 0, 0, Math.PI*2); ctx.fill();
             ctx.globalAlpha = 1;
         } else if(ent.type === 'dragon' && !ent.defeated) {
-            if(!dragonLoaded) {
+            if(dragonLoadedCount < 3) {
                 renderSprite(ctx, SPRITES.dragon, ent.x - cameraX, ent.y - cameraY, ent.phase2, 2.5);
             } else {
                 const t = performance.now()/1000;
-                const bob = Math.sin(t*2)*5;
-                const dw = 128, dh = 128;
-                let frameX = 0; let frameY = 0;
+                const bob = Math.sin(t*2.5)*8; // Animación de respiración suave
+                
+                let img = dragonIdleImg;
                 if(ent.phase2) {
-                    frameY = 128; 
-                    frameX = (Math.floor(t*6) % 4) * 128;
+                    img = dragonAttackImg;
                 } else {
-                    frameY = 0;
-                    frameX = (Math.floor(t*4) % 4) * 128;
+                    // Seguir al jugador con la mirada
+                    if(player.x < ent.x) img = dragonLeftImg;
+                    else img = dragonIdleImg;
                 }
+                
+                // Escalar manteniendo proporción (aprox 0.7 de su tamaño original para que sea imponente)
+                const scale = 0.75;
+                const dw = img.width * scale; 
+                const dh = img.height * scale;
+                
                 ctx.save();
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.beginPath(); ctx.ellipse(ent.x - cameraX, ent.y - cameraY + 40, 40, 15, 0, 0, Math.PI*2); ctx.fill();
-                ctx.drawImage(dragonSheet, frameX, frameY, 128, 128, ent.x - cameraX - dw/2, ent.y - cameraY - dh/2 + bob, dw, dh);
+                // Sombra dinámica que pulsa con la respiración
+                const shadowW = 100 + Math.sin(t*2.5)*10;
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath(); 
+                ctx.ellipse(ent.x - cameraX, ent.y - cameraY + 20, shadowW/2, 25, 0, 0, Math.PI*2); 
+                ctx.fill();
+                
+                // Dibujar Dragón centrado
+                ctx.drawImage(img, ent.x - cameraX - dw/2, ent.y - cameraY - dh + 30 + bob, dw, dh);
+                
+                // Aura de calor/fuego si está en fase 2
+                if(ent.phase2) {
+                    const heat = Math.abs(Math.sin(t*10)) * 0.2;
+                    ctx.globalCompositeOperation = 'screen';
+                    ctx.fillStyle = `rgba(255,100,50,${0.1 + heat})`;
+                    ctx.beginPath();
+                    ctx.arc(ent.x - cameraX, ent.y - cameraY - dh/2, 80, 0, Math.PI*2);
+                    ctx.fill();
+                }
                 ctx.restore();
             }
         } else if(ent.type === 'floating_lamp') {
