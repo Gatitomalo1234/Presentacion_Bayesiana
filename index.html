@@ -1836,17 +1836,26 @@
 		          aspect-ratio: 1 / 1;
 		          border-radius: 8px;
 		          border: 1px solid rgba(238,243,236,.18);
-		          background: rgba(0,0,0,.26);
+		          background: rgba(255,255,255,.96);
 		          display:flex;
 		          align-items:center;
 		          justify-content:center;
-		          color: rgba(238,243,236,.55);
-		          font-family: 'JetBrains Mono', monospace;
-		          font-size: 1.1rem;
-		          letter-spacing: .08em;
-		          text-transform: uppercase;
+		          overflow:hidden;
 		          margin: 12px auto 0;
-		        ">QR</div>
+		          padding: 12px;
+		        ">
+		          <img
+		            src="assets/qr-actividad.jpeg"
+		            alt="QR de la actividad"
+		            style="
+		              width:100%;
+		              height:100%;
+		              object-fit:contain;
+		              display:block;
+		              border-radius:4px;
+		            "
+		          />
+		        </div>
 		      </div>
 		      <!-- transition box removed -->
 		    </section>
