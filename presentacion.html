@@ -1417,14 +1417,26 @@
       <!-- transition box removed -->
     </section>
 
-	    <section class="slide" id="s9">
-	      <div class="stag">Sección · Computación</div>
-	      <h2 class="gh2" style="font-size:clamp(2.4rem,4.8vw,4.2rem);font-weight:720;line-height:1.0;margin-top:14px">
-	        Parametrización
-	      </h2>
-	      <p class="lead mt-5" style="max-width:900px">Centrada vs no centrada.</p>
-	      <!-- transition box removed -->
-	    </section>
+		    <section class="slide" id="s9">
+		      <div class="stag">Sección · Computación</div>
+		      <h2 class="gh2" style="font-size:clamp(2.4rem,4.8vw,4.2rem);font-weight:720;line-height:1.0;margin-top:14px">
+		        Parametrización
+		      </h2>
+		      <p class="lead mt-5" style="max-width:980px">Centrada vs no centrada, usando el mismo ejemplo: <strong>Colombia → ciudades → turistas</strong>.</p>
+
+		      <div class="card mt-6" style="padding:14px;background:rgba(238,243,236,.03);max-width:980px">
+		        <div class="label">Contexto Del Modelo</div>
+		        <div class="formula" style="font-size:1.02rem;line-height:1.65">
+		          $Y_{ij}\mid \mu_j,\beta_j,\sigma_y \sim \mathcal{N}(\mu_j+\beta_j\,days_{ij},\sigma_y^2)$<br>
+		          $\mu_j\mid \mu_0,\sigma_\mu \sim \mathcal{N}(\mu_0,\sigma_\mu^2),\qquad
+		          \beta_j\mid \beta_0,\sigma_\beta \sim \mathcal{N}(\beta_0,\sigma_\beta^2)$
+		        </div>
+		        <div class="muted mt-3" style="line-height:1.5">
+		          Lo único que cambia entre centrada y no centrada es <em>cómo</em> parametrizamos el nivel de ciudades para que HMC mezcle mejor.
+		        </div>
+		      </div>
+		      <!-- transition box removed -->
+		    </section>
 
     <section class="slide" id="s10">
       <div class="stag">Centrada · Fórmula y Partes</div>
@@ -1805,6 +1817,46 @@
 
 		        <div class="ch mt-4" style="height:min(70vh,700px)" data-title="ESS y autocorrelación"><canvas id="ch-ess-demo"></canvas></div>
 		      </div>
+		      <!-- transition box removed -->
+		    </section>
+
+		    <section class="slide" id="s17">
+		      <div class="stag">Actividad</div>
+		      <h2 class="gh2" style="font-size:clamp(2.6rem,5.0vw,4.6rem);font-weight:720;line-height:1.0;margin-top:14px">
+		        Hora de jugar
+		      </h2>
+		      <p class="lead mt-5" style="max-width:980px;text-align:center;margin-left:auto;margin-right:auto">
+		        Escanea el QR para entrar a la actividad interactiva.
+		      </p>
+
+		      <div class="card mt-6" style="padding:18px;background:rgba(238,243,236,.03);max-width:980px;margin-left:auto;margin-right:auto;text-align:center">
+		        <div class="label" style="text-align:center">QR</div>
+		        <div style="
+		          width: min(46vh, 420px);
+		          aspect-ratio: 1 / 1;
+		          border-radius: 8px;
+		          border: 1px solid rgba(238,243,236,.18);
+		          background: rgba(0,0,0,.26);
+		          display:flex;
+		          align-items:center;
+		          justify-content:center;
+		          color: rgba(238,243,236,.55);
+		          font-family: 'JetBrains Mono', monospace;
+		          font-size: 1.1rem;
+		          letter-spacing: .08em;
+		          text-transform: uppercase;
+		          margin: 12px auto 0;
+		        ">QR</div>
+		      </div>
+		      <!-- transition box removed -->
+		    </section>
+
+		    <section class="slide" id="s18">
+		      <div class="stag">Cierre</div>
+		      <h2 class="gh2" style="font-size:clamp(2.8rem,5.2vw,5.2rem);font-weight:720;line-height:0.98;margin-top:14px">
+		        Muchas gracias
+		      </h2>
+		      <p class="lead mt-5" style="max-width:980px">Preguntas.</p>
 		      <!-- transition box removed -->
 		    </section>
 	  </main>
