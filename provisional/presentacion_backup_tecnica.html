@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modelos Jerárquicos Bayesianos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea']}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;background:#060a10;color:#cdd5e0;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#wrap{position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+
+.slide{
+  position:absolute;width:min(1280px,96vw);max-height:92vh;
+  overflow-y:auto;padding:36px 48px;
+  display:none;flex-direction:column;
+  animation:fadein .35s cubic-bezier(.22,.68,0,1.2) both;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.07) transparent;
+}
+.slide::-webkit-scrollbar{width:3px;}
+.slide::-webkit-scrollbar-thumb{background:rgba(255,255,255,.09);border-radius:6px;}
+.slide.active{display:flex;}
+@keyframes fadein{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+/* Cards */
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.062);border-radius:14px;backdrop-filter:blur(10px);transition:border-color .2s,background .2s;}
+.card:hover{background:rgba(255,255,255,.046);border-color:rgba(255,255,255,.095);}
+
+/* Section tag */
+.stag{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(90,130,210,.58);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.stag::before{content:'';display:inline-block;width:22px;height:1px;background:rgba(90,130,210,.32);}
+
+/* Headings */
+.gh{background:linear-gradient(125deg,#d0d8f0 15%,rgba(110,155,255,.9) 60%,rgba(160,100,255,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.025em; font-size: 3.2rem;}
+.gh2{background:linear-gradient(125deg,#c8d2ea 20%,rgba(70,165,255,.85));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em; font-size: 2.6rem;}
+
+/* Definition block */
+.def-block{border-left:2px solid rgba(90,140,255,.42);padding:14px 22px;background:rgba(50,85,200,.065);border-radius:0 12px 12px 0;margin:12px 0;}
+.def-label{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(90,140,255,.62);margin-bottom:6px;font-weight:600;}
+
+/* Theorem */
+.thm{background:rgba(0,0,0,.48);border:1px solid rgba(70,110,200,.18);border-radius:11px;padding:14px 22px;font-size:1.05rem;line-height:2.1;color:rgba(215,210,248,.95);margin:10px 0;font-family:'JetBrains Mono',monospace;}
+.thm-label{font-size:.54rem;text-transform:uppercase;letter-spacing:.2em;color:rgba(70,110,200,.52);margin-bottom:4px;font-family:'Inter',sans-serif;font-weight:600;}
+
+/* Voz alta */
+.voz{border-left:2px solid rgba(160,100,255,.38);padding:12px 18px;background:rgba(120,60,200,.055);border-radius:0 10px 10px 0;font-size:.92rem;color:rgba(200,190,240,.76);line-height:1.68;font-style:italic;margin:12px 0;}
+
+/* Transition cue */
+.nexttip{border-left:2px solid rgba(52,211,153,.32);padding:8px 14px;background:rgba(16,120,70,.055);border-radius:0 9px 9px 0;font-size:.78rem;color:rgba(170,225,200,.68);line-height:1.6;margin-top:14px;}
+.nexttip-label{font-size:.52rem;text-transform:uppercase;letter-spacing:.18em;color:rgba(52,211,153,.5);font-weight:700;margin-bottom:3px;}
+
+/* Example chip */
+.ex-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.18);border-radius:6px;padding:3px 10px;font-size:.59rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(52,211,153,.78);margin-bottom:7px;}
+
+/* Callout */
+.callout{border-left:2px solid rgba(90,140,255,.32);padding:10px 15px;background:rgba(50,85,200,.055);border-radius:0 10px 10px 0;font-size:.81rem;color:rgba(205,200,238,.76);line-height:1.62;}
+.callout.ok{border-left-color:rgba(52,211,153,.42);background:rgba(16,130,80,.065);color:rgba(180,238,210,.76);}
+.callout.warn{border-left-color:rgba(251,146,60,.42);background:rgba(170,80,16,.065);color:rgba(238,210,180,.76);}
+
+/* Muted */
+.muted{color:rgba(148,146,178,.48);font-size:.75rem;}
+
+/* Sep */
+hr.sep{border:none;border-top:1px solid rgba(255,255,255,.052);margin:16px 0;}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 9px;border-radius:5px;font-size:.65rem;font-weight:600;letter-spacing:.04em;}
+.badge-b{background:rgba(50,125,255,.15);color:rgba(110,175,255,.9);border:1px solid rgba(50,125,255,.2);}
+.badge-g{background:rgba(16,185,129,.12);color:rgba(72,214,158,.9);border:1px solid rgba(16,185,129,.18);}
+.badge-r{background:rgba(215,65,75,.12);color:rgba(255,130,130,.9);border:1px solid rgba(215,65,75,.17);}
+.badge-y{background:rgba(230,175,8,.1);color:rgba(238,195,72,.9);border:1px solid rgba(230,175,8,.17);}
+
+/* Layer diagram */
+.layer{border-radius:10px;padding:13px 18px;margin:5px 0;display:flex;align-items:center;gap:12px;}
+.layer-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+/* Nav */
+#nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;display:flex;align-items:center;gap:16px;background:rgba(6,10,16,.82);border:1px solid rgba(255,255,255,.065);border-radius:40px;padding:10px 24px;backdrop-filter:blur(20px);box-shadow:0 4px 28px rgba(0,0,0,.38);}
+.nbtn{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.085);border-radius:50%;width:34px;height:34px;cursor:pointer;color:#8a96b4;display:flex;align-items:center;justify-content:center;transition:all .14s;}
+.nbtn:hover{background:rgba(255,255,255,.11);color:#c8d2e8;}
+.nbtn:disabled{opacity:.2;cursor:default;}
+#dots{display:flex;gap:7px;align-items:center;}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .2s;}
+.dot.active{background:rgba(80,140,255,.9);transform:scale(1.5);}
+#ctr{font-size:.75rem;color:rgba(130,140,168,.42);min-width:38px;text-align:center;font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace;}
+
+/* Chart */
+.ch{position:relative;cursor:pointer;}
+.ch::after{content:'⤢';position:absolute;top:5px;right:7px;font-size:.72rem;color:rgba(150,160,200,.2);transition:color .2s;pointer-events:none;}
+.ch:hover::after{color:rgba(150,160,200,.55);}
+
+.ch-legend{display:none;gap:15px;margin-top:10px;flex-wrap:wrap;}
+#modal-inner .ch-legend{display:flex;}
+.ch-leg-item{display:flex;align-items:center;gap:6px;font-size:.68rem;color:rgba(150,160,200,.6);font-weight:500;}
+.ch-leg-dot{width:8px;height:8px;border-radius:50%;}
+.ch-leg-line{width:14px;height:2px;border-radius:1px;}
+
+.ch-note{display:none;margin-top:12px;padding:10px 14px;background:rgba(255,255,255,.02);border-radius:8px;border-left:2px solid rgba(255,255,255,.1);font-size:.74rem;color:rgba(200,208,232,.65);line-height:1.5;}
+#modal-inner .ch-note{display:block;}
+.ch-note strong{color:rgba(255,255,255,.8);font-weight:600;}
+
+
+/* Modal */
+#chart-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(4,7,14,.92);backdrop-filter:blur(18px);align-items:center;justify-content:center;animation:fadein .2s ease both;}
+#chart-modal.open{display:flex;}
+#modal-inner{width:min(920px,91vw);background:rgba(10,16,30,.96);border:1px solid rgba(255,255,255,.085);border-radius:20px;padding:30px;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.7);}
+#modal-canvas-wrap{position:relative;height:430px;}
+#modal-title{font-size:.63rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(120,140,200,.48);margin-bottom:16px;}
+#modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.085);border-radius:50%;width:30px;height:30px;cursor:pointer;color:rgba(180,180,220,.58);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:all .14s;}
+#modal-close:hover{background:rgba(255,255,255,.11);color:#fff;}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav id="nav" style="z-index: 10000; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; background: rgba(6,10,16,0.9); border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; padding: 10px 24px; backdrop-filter: blur(20px); box-shadow: 0 4px 30px rgba(0,0,0,0.5);">
+  <button class="nbtn" id="bp" onclick="go(-1)"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i></button>
+  <div id="dots" style="display:flex; gap:8px;"></div>
+  <span id="ctr" style="font-family:monospace; font-size:12px; color:#fff; min-width:40px; text-align:center;">1 / 12</span>
+  <button class="nbtn" id="bn" onclick="go(1)"><i data-lucide="arrow-right" style="width:14px;height:14px;"></i></button>
+</nav>
+
+<div id="chart-modal">
+  <div id="modal-inner">
+    <button id="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-title">Gráfico</div>
+    <div id="modal-canvas-wrap"><canvas id="modal-canvas"></canvas></div>
+    <div id="modal-legend-wrap"></div>
+    <div id="modal-note-wrap"></div>
+  </div>
+</div>
+
+<div id="wrap">
+<!-- ══ S1 PORTADA ══ -->
+<div class="slide active" id="s1">
+  <div class="stag">Estadística Bayesiana · Semestre 4 · 2026</div>
+  <h1 class="gh" style="font-size:clamp(2.8rem,5.8vw,4.2rem);font-weight:700;line-height:1.07;margin-bottom:16px;">
+    Modelos Jerárquicos<br>Bayesianos
+  </h1>
+  <p style="font-size:1.08rem;color:rgba(155,170,210,.55);margin-bottom:48px;font-weight:400;max-width:520px;line-height:1.6;">
+    Cómo aprender de grupos sin ignorar lo que cada uno tiene de único
+  </p>
+  <hr class="sep" style="margin-bottom:28px;">
+  <div class="flex items-center gap-3">
+    <div style="width:1px;height:38px;background:rgba(90,130,210,.22);flex-shrink:0;"></div>
+    <div>
+      <p style="font-size:.97rem;color:rgba(200,208,232,.82);font-weight:500;line-height:1.35;">Nicolás Cárdenas Díaz</p>
+      <p style="font-size:.97rem;color:rgba(200,208,232,.82);font-weight:500;line-height:1.35;">Miguel Ángel Camargo Mora</p>
+      <p style="font-size:.97rem;color:rgba(200,208,232,.82);font-weight:500;line-height:1.35;">Brayan Camilo Hernández Silva</p>
+      <p style="font-size:.74rem;color:rgba(120,130,160,.42);margin-top:6px;">Universidad Externado de Colombia</p>
+    </div>
+  </div>
+  <div class="nexttip" style="margin-top:40px;">
+    <div class="nexttip-label">Para arrancar</div>
+    "No vamos a empezar con la definición — vamos a empezar con el problema que hace necesario este modelo."
+  </div>
+</div>
+
+<!-- ══ S2 MODELO DE MODELOS ══ -->
+<div class="slide" id="s2">
+  <div class="stag">Concepto · La Arquitectura Base</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:8px;">Un Modelo de Modelos</h2>
+  <p style="font-size:1.1rem;color:rgba(158,172,215,.5);margin-bottom:24px;">¿Cómo aprendemos de un individuo sin aislarlo de su contexto?</p>
+
+  <div class="grid gap-4 mb-4" style="grid-template-columns:1fr 1fr; align-items:center;">
+    <!-- Gráfico Visual: Burbujas Anidadas -->
+    <div style="display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,.15); border-radius:16px; border:1px solid rgba(255,255,255,.05); padding:15px; height:100%; min-height: 350px;">
+      <svg width="100%" height="100%" viewBox="0 0 400 320" style="max-height:340px; overflow:visible;">
+        <defs>
+          <radialGradient id="popGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(160,80,255,0.02)"/>
+            <stop offset="100%" stop-color="rgba(160,80,255,0.12)"/>
+          </radialGradient>
+          <radialGradient id="grpGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(56,140,248,0.1)"/>
+            <stop offset="100%" stop-color="rgba(56,140,248,0.22)"/>
+          </radialGradient>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(52,211,153,0.8)" />
+          </marker>
+        </defs>
+
+        <!-- Población (Nivel 3) -->
+        <circle cx="200" cy="165" r="145" fill="url(#popGrad)" stroke="rgba(160,80,255,0.5)" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="200" y="30" text-anchor="middle" fill="rgba(190,140,255,0.9)" font-size="13" font-weight="700" letter-spacing="1">NIVEL 3: POBLACIÓN</text>
+        <path d="M 200 40 L 200 50" stroke="rgba(190,140,255,0.4)" stroke-width="1.5"/>
+
+        <!-- Grupos (Nivel 2) -->
+        <!-- Grupo 1 -->
+        <circle cx="125" cy="135" r="55" fill="url(#grpGrad)" stroke="rgba(56,140,248,0.6)" stroke-width="1.5"/>
+        <text x="125" y="70" text-anchor="middle" fill="rgba(120,180,255,0.9)" font-size="11" font-weight="600">NIVEL 2: GRUPO</text>
+        
+        <!-- Grupo 2 -->
+        <circle cx="275" cy="135" r="55" fill="url(#grpGrad)" stroke="rgba(56,140,248,0.6)" stroke-width="1.5"/>
+        
+        <!-- Grupo 3 -->
+        <circle cx="200" cy="250" r="45" fill="url(#grpGrad)" stroke="rgba(56,140,248,0.6)" stroke-width="1.5"/>
+
+        <!-- Individuos (Nivel 1) -->
+        <!-- Individuos G1 -->
+        <circle cx="110" cy="120" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="135" cy="115" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="125" cy="145" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="105" cy="140" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="145" cy="135" r="4.5" fill="#34d399" filter="url(#glow)"/>
+
+        <!-- Individuos G2 -->
+        <circle cx="260" cy="120" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="285" cy="125" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="270" cy="145" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="290" cy="145" r="4.5" fill="#34d399" filter="url(#glow)"/>
+
+        <!-- Individuos G3 -->
+        <circle cx="190" cy="240" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="210" cy="245" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        <circle cx="200" cy="260" r="4.5" fill="#34d399" filter="url(#glow)"/>
+        
+        <!-- Flecha y texto de Individuos -->
+        <path d="M 275 90 L 282 115" stroke="rgba(52,211,153,0.6)" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="275" y="82" text-anchor="middle" fill="rgba(80,230,170,0.9)" font-size="10" font-weight="600">NIVEL 1: INDIVIDUOS</text>
+      </svg>
+    </div>
+
+    <!-- Explicación Textual -->
+    <div class="flex flex-col gap-3 justify-center">
+      <div class="def-block" style="border-left-color:rgba(160,80,255,.6);background:rgba(160,80,255,.05);padding:18px;margin:0;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div class="layer-dot" style="background:rgba(160,80,255,.9);width:12px;height:12px;"></div>
+          <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.16em;color:rgba(180,120,255,.9);font-weight:700;">Nivel 3 — Población (Universidad)</div>
+        </div>
+        <p style="font-size:1rem;color:rgba(210,208,240,.8);line-height:1.5;margin:0;">El <strong>círculo gigante</strong>. Representa el comportamiento general de todo el conjunto. Otorga información global y estabiliza el modelo.</p>
+      </div>
+
+      <div class="def-block" style="border-left-color:rgba(56,140,248,.6);background:rgba(56,140,248,.05);padding:18px;margin:0;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div class="layer-dot" style="background:rgba(56,140,248,.9);width:12px;height:12px;"></div>
+          <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.16em;color:rgba(100,160,255,.9);font-weight:700;">Nivel 2 — Grupo (El Salón)</div>
+        </div>
+        <p style="font-size:1rem;color:rgba(210,208,240,.8);line-height:1.5;margin:0;">Las <strong>burbujas azules</strong>. Cada grupo tiene características propias, pero están anidadas dentro de la misma población, compartiendo similitudes.</p>
+      </div>
+
+      <div class="def-block" style="border-left-color:rgba(52,211,153,.6);background:rgba(52,211,153,.05);padding:18px;margin:0;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div class="layer-dot" style="background:rgba(52,211,153,.9);width:12px;height:12px;box-shadow:0 0 6px rgba(52,211,153,.8);"></div>
+          <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.16em;color:rgba(80,220,160,.9);font-weight:700;">Nivel 1 — Individuos (Estudiantes)</div>
+        </div>
+        <p style="font-size:1rem;color:rgba(210,208,240,.8);line-height:1.5;margin:0;">Los <strong>puntos luminosos</strong>. Son los datos reales que observamos. Su comportamiento está influenciado tanto por su grupo directo como por la población total.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="voz mt-3">
+    "Aprender de un grupo sin ignorar lo que la población entera nos puede enseñar. Esa conexión compartida entre los niveles es lo que llamamos 'Jerarquía'."
+  </div>
+</div>
+
+<!-- ══ S3 ¿PARA QUÉ SE USA? ══ -->
+<div class="slide" id="s3">
+  <div class="stag">Motivación · La Estructura del Mundo</div>
+  <h2 class="gh2" style="font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin-bottom:6px;">¿Por qué necesitamos jerarquías?</h2>
+  <p style="font-size:.95rem;color:rgba(158,172,215,.5);margin-bottom:20px;">El mundo no es plano, está naturalmente anidado. Ignorar esta estructura es estadísticamente incorrecto.</p>
+
+  <div class="grid gap-4" style="grid-template-columns: 1fr 1fr; align-items: stretch;">
+    <!-- Izquierda: La Motivación -->
+    <div class="flex flex-col gap-3">
+      <div class="def-block" style="margin:0; height: 100%;">
+        <div class="def-label">El Problema de Asumir Independencia</div>
+        <p style="font-size:.82rem;color:rgba(210,208,240,.8);line-height:1.6;margin-bottom:12px;">La estadística clásica asume que cada observación es un ente aislado. Pero en la realidad, las observaciones <strong>comparten contexto</strong>.</p>
+        
+        <div class="def-label" style="color:rgba(52,211,153,.7);">La Solución: "Préstamo de Información"</div>
+        <p style="font-size:.82rem;color:rgba(210,208,240,.8);line-height:1.6;">El modelo jerárquico permite que los grupos con pocos datos <strong>"pidan prestada"</strong> fuerza estadística del comportamiento general de la población, evitando el sobreajuste.</p>
+      </div>
+    </div>
+
+    <!-- Derecha: Ejemplos de Datos Anidados -->
+    <div class="card p-4 flex flex-col gap-2 justify-center">
+      <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;color:rgba(160,170,200,.6);margin-bottom:4px;font-weight:600;">Casos de uso típicos</div>
+      
+      <!-- Arbol 1 -->
+      <div style="display:flex;align-items:center;gap:10px;padding:6px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid rgba(255,255,255,.05);">
+        <i data-lucide="stethoscope" style="width:16px;height:16px;color:rgba(56,140,248,.8)"></i>
+        <div style="font-size:.78rem;color:rgba(200,200,220,.9);">Pacientes <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Médicos <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Hospitales</div>
+      </div>
+      
+      <!-- Arbol 2 -->
+      <div style="display:flex;align-items:center;gap:10px;padding:6px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid rgba(255,255,255,.05);">
+        <i data-lucide="graduation-cap" style="width:16px;height:16px;color:rgba(52,211,153,.8)"></i>
+        <div style="font-size:.78rem;color:rgba(200,200,220,.9);">Estudiantes <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Salones <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Colegios</div>
+      </div>
+
+      <!-- Arbol 3 -->
+      <div style="display:flex;align-items:center;gap:10px;padding:6px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid rgba(255,255,255,.05);">
+        <i data-lucide="shopping-cart" style="width:16px;height:16px;color:rgba(251,146,60,.8)"></i>
+        <div style="font-size:.78rem;color:rgba(200,200,220,.9);">Clientes <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Tiendas <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Regiones</div>
+      </div>
+      
+      <!-- Arbol 4 -->
+      <div style="display:flex;align-items:center;gap:10px;padding:6px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid rgba(255,255,255,.05);">
+        <i data-lucide="music" style="width:16px;height:16px;color:rgba(160,80,255,.8)"></i>
+        <div style="font-size:.78rem;color:rgba(200,200,220,.9);">Canciones <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Álbumes <span style="color:rgba(100,110,140,.6);margin:0 4px;">→</span> Artistas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nexttip mt-4">
+    <div class="nexttip-label">Transición</div>
+    "Ahora que entendemos que el mundo tiene una estructura anidada y la importancia de pedir información prestada, veamos nuestro caso de uso práctico: El Problema de Spotify."
+  </div>
+</div>
+
+<!-- ══ S4 EL TRIBUNAL DE LOS MODELOS ══ -->
+<div class="slide" id="s4">
+  <div class="stag">Evolución del Pensamiento · El Caso Spotify</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:14px;">¿Cómo modelar 350 canciones de 44 artistas?</h2>
+  
+  <div class="grid gap-5" style="grid-template-columns: 1fr 1fr 1fr; align-items: stretch;">
+    
+    <!-- COLUMNA 1: El Error Novato -->
+    <div class="card p-4" style="border-top:3px solid rgba(251,113,133,.6); background: linear-gradient(180deg, rgba(251,113,133,.03) 0%, transparent 100%);">
+      <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(251,113,133,.8);font-weight:700;margin-bottom:6px;">Nivel 1: El Error Novato</div>
+      <div style="font-size:1.05rem;color:rgba(215,210,248,.9);margin-bottom:10px;font-weight:600;">Regresión Plana (OLS)</div>
+      
+      <div style="background:rgba(0,0,0,0.2); border-radius:6px; padding:10px; margin-bottom:12px; border:1px solid rgba(251,113,133,0.1);">
+        <p style="font-size:.78rem;color:rgba(210,208,240,.7);line-height:1.5; margin:0;">
+          Asume <strong>Intercambiabilidad Total</strong>. Trata cada canción como independiente, ignorando quién la canta.
+        </p>
+      </div>
+
+      <div class="ch" style="height:110px; margin-bottom:12px;" data-chart-title="Popularidad de canciones agrupadas por artista"><canvas id="ch-interch"></canvas></div>
+      
+      <div class="ch-legend">
+        <div class="ch-leg-item"><div class="ch-leg-dot" style="background:rgba(167,139,250,0.8)"></div>Artistas (Clusters)</div>
+      </div>
+
+      <div class="ch-note">
+        <strong>Interpretación:</strong> Cada color representa un artista. Observa cómo las canciones no están dispersas al azar, sino que forman grupos.<br>
+        <strong>Ejes:</strong> <span class="badge badge-b">X</span> Artistas · <span class="badge badge-b">Y</span> Popularidad de canciones.
+      </div>
+    </div>
+
+    <!-- COLUMNA 2: El Nivel Intermedio (LMM Clásico) -->
+    <div class="card p-4" style="border-top:3px solid rgba(230,175,8,.6); background: linear-gradient(180deg, rgba(230,175,8,.03) 0%, transparent 100%);">
+      <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(230,175,8,.8);font-weight:700;margin-bottom:6px;">Nivel 2: Frecuentista</div>
+      <div style="font-size:1.05rem;color:rgba(215,210,248,.9);margin-bottom:10px;font-weight:600;">Modelos Mixtos (LMM)</div>
+      
+      <div style="background:rgba(0,0,0,0.2); border-radius:6px; padding:10px; margin-bottom:12px; border:1px solid rgba(230,175,8,0.1);">
+        <p style="font-size:.78rem;color:rgba(210,208,240,.7);line-height:1.5; margin:0;">
+          Reconoce la estructura. Estima efectos fijos y aleatorios (varianzas de grupo).
+        </p>
+      </div>
+
+      <!-- Gráfico SVG: Línea Rígida -->
+      <div style="width:100%; height:90px; margin-bottom:18px; position:relative; margin-top:16px;">
+        <svg width="100%" height="100%" viewBox="0 0 150 70">
+          <line x1="10" y1="55" x2="140" y2="55" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+          <line x1="75" y1="15" x2="75" y2="55" stroke="rgba(230,175,8,0.9)" stroke-width="3"/>
+          <circle cx="75" cy="55" r="4" fill="rgba(230,175,8,1)"/>
+          <text x="75" y="10" text-anchor="middle" fill="rgba(230,175,8,0.9)" font-size="12" font-weight="bold" font-family="monospace">Punto Fijo</text>
+        </svg>
+      </div>
+
+      <div class="callout" style="font-size:.7rem; margin:0; padding:8px; border-left-color:rgba(230,175,8,.5); background:rgba(230,175,8,.05);">
+        <strong>Límite:</strong> Usa estimadores puntuales. Si un artista tiene 1 sola canción, la estimación puede volverse inestable (varianza infinita).
+      </div>
+    </div>
+
+    <!-- COLUMNA 3: El Nivel Experto (Bayesiano) -->
+    <div class="card p-4" style="border-top:3px solid rgba(52,211,153,.6); background: linear-gradient(180deg, rgba(52,211,153,.03) 0%, transparent 100%);">
+      <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(52,211,153,.8);font-weight:700;margin-bottom:6px;">Nivel 3: Experto</div>
+      <div style="font-size:1.05rem;color:rgba(215,210,248,.9);margin-bottom:10px;font-weight:600;">Jerárquico Bayesiano</div>
+      
+      <div style="background:rgba(0,0,0,0.2); border-radius:6px; padding:10px; margin-bottom:12px; border:1px solid rgba(52,211,153,0.1);">
+        <p style="font-size:.78rem;color:rgba(210,208,240,.7);line-height:1.5; margin:0;">
+          El hábitat natural de la jerarquía. Trata los parámetros como <strong>distribuciones completas</strong>.
+        </p>
+      </div>
+
+      <!-- Gráfico SVG: Curva Fluida -->
+      <div style="width:100%; height:90px; margin-bottom:18px; position:relative; margin-top:16px;">
+        <svg width="100%" height="100%" viewBox="0 0 150 70">
+          <defs>
+            <linearGradient id="curveGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="rgba(52,211,153,0.5)"/>
+              <stop offset="100%" stop-color="rgba(52,211,153,0.0)"/>
+            </linearGradient>
+            <filter id="glowBayes" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+          <line x1="10" y1="55" x2="140" y2="55" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+          <path d="M 20 55 C 45 55, 60 15, 75 15 C 90 15, 105 55, 130 55 Z" fill="url(#curveGrad)"/>
+          <path d="M 20 55 C 45 55, 60 15, 75 15 C 90 15, 105 55, 130 55" fill="none" stroke="rgba(52,211,153,0.9)" stroke-width="2.5" filter="url(#glowBayes)"/>
+          <text x="75" y="10" text-anchor="middle" fill="rgba(52,211,153,0.9)" font-size="11" font-style="italic" font-family="serif">Distribución</text>
+        </svg>
+      </div>
+
+      <div class="callout ok" style="font-size:.7rem; margin:0; padding:8px;">
+        <strong>Superpoder:</strong> Al modelar incertidumbre, permite un "préstamo de información" orgánico. Los artistas pequeños sobreviven.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nexttip mt-4">
+    <div class="nexttip-label">Transición</div>
+    "Queda claro por qué elegimos el Nivel 3. Veamos entonces cómo se construye matemáticamente este motor bayesiano."
+  </div>
+</div>
+<!-- ══ S5 MODELO JERÁRQUICO FORMAL ══ -->
+<div class="slide" id="s5">
+  <div class="stag">Especificación probabilística · La Máquina Generadora</div>
+  <h2 class="gh2" style="font-size:clamp(1.6rem,3.2vw,2.3rem);font-weight:700;margin-bottom:14px;">El Modelo Normal Jerárquico</h2>
+
+  <div class="grid gap-4" style="grid-template-columns:1.2fr 0.8fr; align-items:start;">
+    
+    <!-- Lado Izquierdo: El Proceso Generativo (Cascada) -->
+    <div class="flex flex-col gap-0 relative">
+      <!-- Línea conectora -->
+      <div style="position:absolute; left:24px; top:30px; bottom:40px; width:2px; background:linear-gradient(180deg, rgba(160,80,255,0.6), rgba(56,140,248,0.6), rgba(52,211,153,0.6)); z-index:0;"></div>
+
+      <!-- Paso 1 -->
+      <div class="flex gap-4 relative z-10 mb-6">
+        <div style="width:50px; height:50px; border-radius:50%; background:#1e1e2f; border:2px solid rgba(160,80,255,0.8); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 0 12px rgba(160,80,255,0.4);">
+          <i data-lucide="globe" style="color:rgba(160,80,255,0.9); width:24px; height:24px;"></i>
+        </div>
+        <div class="flex-1 card p-4" style="border-left:3px solid rgba(160,80,255,0.6); background:linear-gradient(90deg, rgba(160,80,255,0.03), transparent);">
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(160,80,255,.9);font-weight:700;margin-bottom:4px;">Paso 1: El Origen (Población)</div>
+          <div style="font-size:.85rem;color:rgba(210,208,240,.9);line-height:1.4;margin-bottom:10px;">Definimos la "bolsa" general de talento de toda la industria musical.</div>
+          <div class="thm" style="padding:6px 12px; font-size:.85rem; border-color:rgba(160,80,255,.2); background:rgba(160,80,255,.05); display:inline-block;">
+            $$\mu \sim \mathcal{N}(50,25^2) \quad \sigma_\mu \sim \text{Exp}(1)$$
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="flex gap-4 relative z-10 mb-6">
+        <div style="width:50px; height:50px; border-radius:50%; background:#1e1e2f; border:2px solid rgba(56,140,248,0.8); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 0 12px rgba(56,140,248,0.4);">
+          <i data-lucide="mic" style="color:rgba(56,140,248,0.9); width:24px; height:24px;"></i>
+        </div>
+        <div class="flex-1 card p-4" style="border-left:3px solid rgba(56,140,248,0.6); background:linear-gradient(90deg, rgba(56,140,248,0.03), transparent);">
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(56,140,248,.9);font-weight:700;margin-bottom:4px;">Paso 2: Nace el Artista (Grupo)</div>
+          <div style="font-size:.85rem;color:rgba(210,208,240,.9);line-height:1.4;margin-bottom:10px;">El artista saca su talento promedio ($\mu_j$) de la bolsa general.</div>
+          <div class="thm" style="padding:6px 12px; font-size:.85rem; border-color:rgba(56,140,248,.2); background:rgba(56,140,248,.05); display:inline-block;">
+            $$\mu_j \mid \mu,\sigma_\mu \;\sim\; \mathcal{N}(\mu,\;\sigma_\mu^2)$$
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="flex gap-4 relative z-10">
+        <div style="width:50px; height:50px; border-radius:50%; background:#1e1e2f; border:2px solid rgba(52,211,153,0.8); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 0 12px rgba(52,211,153,0.4);">
+          <i data-lucide="disc" style="color:rgba(52,211,153,0.9); width:24px; height:24px;"></i>
+        </div>
+        <div class="flex-1 card p-4" style="border-left:3px solid rgba(52,211,153,0.6); background:linear-gradient(90deg, rgba(52,211,153,0.03), transparent);">
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(52,211,153,.9);font-weight:700;margin-bottom:4px;">Paso 3: Se graba la Canción (Dato)</div>
+          <div style="font-size:.85rem;color:rgba(210,208,240,.9);line-height:1.4;margin-bottom:10px;">La popularidad de la canción fluctúa alrededor del talento de su artista.</div>
+          <div class="thm" style="padding:6px 12px; font-size:.85rem; border-color:rgba(52,211,153,.2); background:rgba(52,211,153,.05); display:inline-block;">
+            $$Y_{ij} \mid \mu_j,\sigma_y \;\sim\; \mathcal{N}(\mu_j,\;\sigma_y^2)$$
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lado Derecho: El Motor del Modelo Bayesiano (Prior, Likelihood, Posterior) -->
+    <div class="flex flex-col gap-3">
+      
+      <div class="card p-4" style="background:rgba(30,35,60,0.6); border:1px solid rgba(255,255,255,0.05); box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+        <div class="muted mb-4" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;text-align:center;color:rgba(215,210,248,.6);">La Actualización Bayesiana</div>
+        
+        <!-- Prior -->
+        <div class="flex flex-col mb-4">
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(56,140,248,.9);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+            <i data-lucide="brain" style="width:14px;height:14px;"></i> 1. Prior Jerárquico
+          </div>
+          <div class="thm" style="padding:8px; font-size:.85rem; border-color:rgba(56,140,248,.2); background:rgba(56,140,248,.05);">
+            $$p(\mu_j \mid \mu, \sigma_\mu)$$
+          </div>
+          <div style="font-size:.78rem;color:rgba(210,208,240,.7);margin-top:4px;">Lo que asumimos del artista basado en cómo se comporta el resto de la industria.</div>
+        </div>
+
+        <!-- Likelihood -->
+        <div class="flex flex-col mb-4">
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(52,211,153,.9);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+            <i data-lucide="eye" style="width:14px;height:14px;"></i> 2. Likelihood (Evidencia)
+          </div>
+          <div class="thm" style="padding:8px; font-size:.85rem; border-color:rgba(52,211,153,.2); background:rgba(52,211,153,.05);">
+            $$p(Y \mid \mu_j, \sigma_y)$$
+          </div>
+          <div style="font-size:.78rem;color:rgba(210,208,240,.7);margin-top:4px;">La información real que nos dicen los datos de sus propias canciones.</div>
+        </div>
+
+        <!-- Línea divisoria de Bayes -->
+        <div style="border-top:2px dashed rgba(255,255,255,.1); margin:18px 0; position:relative;">
+          <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#181922; padding:0 10px; color:rgba(255,255,255,.5); font-size:1.1rem; font-family:'Times New Roman', serif; font-style:italic; font-weight:bold;">Bayes</div>
+        </div>
+
+        <!-- Posterior -->
+        <div class="flex flex-col">
+          <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(160,80,255,.9);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+            <i data-lucide="sparkles" style="width:14px;height:14px;"></i> 3. Posterior (Aprendizaje)
+          </div>
+          <div class="thm" style="padding:10px; font-size:1rem; border-color:rgba(160,80,255,.4); background:rgba(160,80,255,.1); box-shadow:0 0 16px rgba(160,80,255,.15);">
+            $$p(\mu_j \mid Y, \mu, \sigma_\mu) \propto \text{Likelihood} \times \text{Prior}$$
+          </div>
+          <div style="font-size:.82rem;color:rgba(210,208,240,.9);margin-top:6px; font-weight:500;">La estimación equilibrada final del talento real del artista.</div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="nexttip mt-3">
+    <div class="nexttip-label">Transición</div>
+    "El modelo construido tiene una propiedad fascinante: las estimaciones de $\mu_j$ no son la media bruta del artista ni la media global de la industria — se atraen hacia el centro. Eso tiene nombre: shrinkage."
+  </div>
+</div>
+
+<!-- ══ S6 TRES ESTRATEGIAS ══ -->
+<!-- ══ S6 EL DILEMA DEL POOLING ══ -->
+<div class="slide" id="s6">
+  <div class="stag">Estrategias de Agregación · El Punto Dulce</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:12px;">¿Qué tanto debemos compartir?</h2>
+  <p style="font-size:1.05rem;color:rgba(158,172,215,.5);margin-bottom:20px;">
+    El modelo jerárquico no es solo una fórmula; es una decisión sobre cómo fluye la información entre los grupos.
+  </p>
+
+  <div class="grid gap-5" style="grid-template-columns: 1fr 1.2fr;">
+    
+    <!-- Lado Izquierdo: Los Tres Mundos -->
+    <div class="flex flex-col gap-3">
+      <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(160,170,200,.6);font-weight:600;margin-bottom:4px;">Tres respuestas al mismo problema</div>
+      
+      <!-- Complete -->
+      <div class="card p-4" style="border-left:3px solid rgba(215,65,200,.6); background:rgba(215,65,200,.02);">
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:.85rem;color:rgba(215,65,200,.9);font-weight:700;">1. Complete Pooling (El "Pesimista")</span>
+        </div>
+        <p style="font-size:.85rem;color:rgba(200,195,230,.7);line-height:1.45;">Ignora las diferencias. Todos los artistas son promediados en un solo punto global.</p>
+        <div style="font-size:.7rem; color:rgba(255,100,100,.5); margin-top:5px; font-style:italic;">"Oculta la diversidad real de los artistas."</div>
+      </div>
+
+      <!-- No Pooling -->
+      <div class="card p-4" style="border-left:3px solid rgba(230,175,8,.6); background:rgba(230,175,8,.02);">
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:.85rem;color:rgba(230,175,8,.9);font-weight:700;">2. No Pooling (El "Ingenuo")</span>
+        </div>
+        <p style="font-size:.85rem;color:rgba(200,195,230,.7);line-height:1.45;">Trata a cada artista como una isla. Si un artista tiene 1 canción, se cree su resultado a ciegas.</p>
+        <div style="font-size:.7rem; color:rgba(230,175,8,.5); margin-top:5px; font-style:italic;">"Sufre con datos escasos (varianza extrema)."</div>
+      </div>
+
+      <!-- Partial -->
+      <div class="card p-4" style="border-left:3px solid rgba(52,211,153,.6); background:rgba(16,130,75,.05); border-color:rgba(52,211,153,.2);">
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:.85rem;color:rgba(52,211,153,1);font-weight:700;">3. Partial Pooling (El "Sabio")</span>
+        </div>
+        <p style="font-size:.85rem;color:rgba(200,195,230,.85);line-height:1.45;"><strong>Tu Modelo Jerárquico.</strong> Reconoce la individualidad pero pide prestada información de la población.</p>
+      </div>
+
+      <!-- Comparison Chart Mini-Card -->
+      <div class="card p-3 mt-1" style="background:rgba(0,0,0,0.1);">
+        <div style="font-size:.6rem;text-transform:uppercase;color:rgba(150,160,200,.5);margin-bottom:8px;">Resultados en Spotify (12 artistas)</div>
+        <div class="ch" style="height:70px" data-chart-title="Comparación de Estimaciones — 12 artistas"><canvas id="ch-3models"></canvas></div>
+        
+        <div class="ch-legend" style="margin-top:8px;">
+          <div class="ch-leg-item"><div class="ch-leg-line" style="background:rgba(215,65,200,.8)"></div>Complete</div>
+          <div class="ch-leg-item"><div class="ch-leg-dot" style="background:rgba(56,180,248,.5)"></div>No Pooling</div>
+          <div class="ch-leg-item"><div class="ch-leg-line" style="background:rgba(52,211,153,.85)"></div>Jerárquico</div>
+        </div>
+
+        <div class="ch-note" style="font-size:.65rem; padding:8px; margin-top:8px;">
+          <strong>Efecto:</strong> El modelo jerárquico (verde) jala las medias de los artistas hacia el centro global.<br>
+          <strong>Ejes:</strong> <span class="badge badge-b">X</span> Artistas · <span class="badge badge-b">Y</span> Popularidad estimada.
+        </div>
+      </div>
+    </div>
+
+    <!-- Lado Derecho: La Palanca Matemática -->
+    <div class="card p-5 flex flex-col justify-center relative" style="background:rgba(30,35,60,0.4); border:1px solid rgba(90,140,255,0.15);">
+      <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(90,140,255,.8);font-weight:700;margin-bottom:20px;text-align:center;">
+        La Palanca Técnica: $\sigma_\mu$
+      </div>
+      
+      <div class="flex flex-col gap-4">
+        <!-- Caso 1 -->
+        <div style="display:flex; align-items:center; gap:15px; padding:12px; background:rgba(0,0,0,0.2); border-radius:10px; border-left:4px solid rgba(215,65,200,0.6);">
+          <div style="font-family:'JetBrains Mono', monospace; font-size:1.1rem; font-weight:700; color:rgba(215,65,200,0.9); min-width:80px;">$\sigma_\mu = 0$</div>
+          <div style="font-size:.82rem; color:rgba(210,208,240,0.8); line-height:1.4;">
+            <strong>Pooling Completo:</strong> No hay varianza entre grupos. El modelo colapsa en una sola media global.
+          </div>
+        </div>
+
+        <!-- Caso 2 -->
+        <div style="display:flex; align-items:center; gap:15px; padding:12px; background:rgba(0,0,0,0.2); border-radius:10px; border-left:4px solid rgba(230,175,8,0.6);">
+          <div style="font-family:'JetBrains Mono', monospace; font-size:1.1rem; font-weight:700; color:rgba(230,175,8,0.9); min-width:80px;">$\sigma_\mu \to \infty$</div>
+          <div style="font-size:.82rem; color:rgba(210,208,240,0.8); line-height:1.4;">
+            <strong>No Pooling:</strong> Varianza infinita entre grupos. El modelo asume que no tienen nada en común.
+          </div>
+        </div>
+
+        <!-- Caso 3 -->
+        <div style="display:flex; align-items:center; gap:15px; padding:12px; background:rgba(16,130,75,.05); border:1px solid rgba(52,211,153,0.2); border-radius:10px; border-left:4px solid rgba(52,211,153,1);">
+          <div style="font-family:'JetBrains Mono', monospace; font-size:1.1rem; font-weight:700; color:rgba(52,211,153,1); min-width:80px;">$\sigma_\mu \sim \text{p}(\cdot)$</div>
+          <div style="font-size:.82rem; color:rgba(210,208,240,0.9); line-height:1.4;">
+            <strong>Pooling Parcial:</strong> El modelo <em>aprende</em> la varianza de los datos. Decide dinámicamente cuánto compartir.
+          </div>
+        </div>
+      </div>
+
+      <div class="voz mt-4" style="font-size:.78rem; margin:0;">
+        "En el mundo Bayesiano, no elegimos un extremo por dogma; dejamos que los datos nos digan qué tan elástico es el mundo."
+      </div>
+    </div>
+  </div>
+
+  <div class="nexttip mt-4">
+    <div class="nexttip-label">Transición</div>
+    "Esta decisión sobre $\sigma_\mu$ tiene una consecuencia física inmediata en las estimaciones de cada artista. A ese efecto lo llamamos Shrinkage."
+  </div>
+</div>
+
+<!-- ══ S7 SHRINKAGE ══ -->
+<div class="slide" id="s7">
+  <div class="stag">Propiedad Emergente · La Regla del Compromiso</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:14px;">Shrinkage: El Equilibrio de la Información</h2>
+  
+  <div class="grid gap-6" style="grid-template-columns:1.1fr 1.3fr">
+    
+    <!-- Columna Izquierda: LA TEORÍA GENERAL -->
+    <div class="flex flex-col gap-3">
+      <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(150,160,200,.6);font-weight:600;">Fundamento Teórico</div>
+      
+      <p style="font-size:.8rem; color:rgba(200,208,232,0.7); line-height:1.5;">
+        El <strong>Shrinkage</strong> es el proceso por el cual las estimaciones individuales son "jaladas" hacia el promedio grupal. Ocurre porque el modelo asume que los grupos comparten una misma procedencia (Jerarquía).
+      </p>
+
+      <!-- Diccionario de Intensidad -->
+      <div class="card p-4" style="background:rgba(255,255,255,0.02); border-color:rgba(255,255,255,0.05);">
+        <div style="font-size:.6rem; color:rgba(52,211,153,0.8); font-weight:700; margin-bottom:12px; text-transform:uppercase;">Diccionario de Intensidad</div>
+        
+        <div class="flex flex-col gap-3">
+          <div style="border-left:2px solid #ef4444; padding-left:10px;">
+            <div style="font-size:.75rem; font-weight:700; color:white;">Shrinkage Fuerte ($\lambda \to 0$)</div>
+            <div style="font-size:.65rem; color:rgba(255,255,255,0.4);">Poca información individual. El grupo domina la estimación.</div>
+          </div>
+          
+          <div style="border-left:2px solid #eab308; padding-left:10px;">
+            <div style="font-size:.75rem; font-weight:700; color:white;">Shrinkage Moderado</div>
+            <div style="font-size:.65rem; color:rgba(255,255,255,0.4);">Equilibrio entre datos propios y tendencia global.</div>
+          </div>
+
+          <div style="border-left:2px solid #10b981; padding-left:10px;">
+            <div style="font-size:.75rem; font-weight:700; color:white;">Shrinkage Débil ($\lambda \to 1$)</div>
+            <div style="font-size:.65rem; color:rgba(255,255,255,0.4);">Mucha información o bajo ruido. El individuo se independiza.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ubicación en el Modelo -->
+      <div class="p-3 rounded-lg bg-sky-500/5 border border-sky-500/10">
+        <div style="font-size:.65rem; color:rgba(56,180,248,0.8); font-weight:700; margin-bottom:4px;">¿Dónde ocurre en el modelo?</div>
+        <div style="font-size:.7rem; color:rgba(255,255,255,0.5); line-height:1.4;">
+          Es el "punto de fricción" donde el <strong>Nivel 1</strong> (Tus datos individuales) se encuentra con el <strong>Nivel 2</strong> (La estructura de tus grupos).
+        </div>
+      </div>
+
+      <!-- LA RECETA MATEMÁTICA -->
+      <div class="card p-4" style="background:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.1);">
+        <div style="font-size:.6rem; color:rgba(52,211,153,0.8); font-weight:700; margin-bottom:10px; text-transform:uppercase;">La Receta Matemática</div>
+        
+        <div class="flex flex-col gap-3">
+          <div>
+            <div style="font-size:.65rem; color:white; font-weight:700; margin-bottom:2px;">1. El Peso de Confianza ($\lambda$):</div>
+            <div style="font-size:.7rem; background:rgba(0,0,0,0.3); padding:6px; border-radius:4px; text-align:center;">
+              $\lambda_j = \frac{n_j/\sigma_y^2}{n_j/\sigma_y^2 + 1/\sigma_\mu^2}$
+            </div>
+            <div style="font-size:.55rem; color:rgba(255,255,255,0.3); margin-top:3px;">Ratio de Precisiones: Dato / (Dato + Grupo)</div>
+          </div>
+          
+          <div>
+            <div style="font-size:.65rem; color:white; font-weight:700; margin-bottom:2px;">2. La Estimación Final:</div>
+            <div style="font-size:.7rem; background:rgba(0,0,0,0.3); padding:6px; border-radius:4px; text-align:center;">
+              $\hat{\mu}_j = \lambda_j \bar{Y}_j + (1-\lambda_j) \mu$
+            </div>
+            <div style="font-size:.55rem; color:rgba(255,255,255,0.3); margin-top:3px;">Promedio ponderado entre lo local y lo global.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: LABORATORIO DE VERIFICACIÓN -->
+    <div class="flex flex-col gap-3">
+      <div class="card p-5 h-full flex flex-col" style="background:rgba(10,15,30,0.5); border-color:rgba(56,180,248,0.2);">
+        <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(56,180,248,.8);font-weight:700;margin-bottom:20px;text-align:center;">
+          Laboratorio: Verificación de Escenarios
+        </div>
+
+        <div class="bg-black/40 rounded-xl p-8 border border-white/5 relative overflow-hidden mb-4" style="height:160px;">
+          <div style="position:absolute; top:50%; left:10%; right:10%; height:1px; background:rgba(255,255,255,0.05);"></div>
+          
+          <div id="sim-anchor" style="position:absolute; top:30%; left:50%; bottom:30%; width:2px; background:#a855f7; box-shadow:0 0-15px #a855f7; z-index:2;">
+            <div style="position:absolute; top:-18px; left:-40px; width:80px; text-align:center; font-size:7px; color:#a855f7; font-weight:700;">MEDIA GRUPAL</div>
+          </div>
+
+          <div id="sim-raw" style="position:absolute; top:50%; left:85%; width:14px; height:14px; border:1px dashed rgba(255,255,255,0.3); border-radius:50%; transform:translate(-50%,-50%); transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+             <div style="position:absolute; bottom:-16px; left:-20px; width:60px; text-align:center; font-size:7px; color:rgba(255,255,255,0.25);">Dato Observado</div>
+          </div>
+
+          <div id="sim-dot" style="position:absolute; top:50%; left:60%; width:12px; height:12px; background:#10b981; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 15px #10b981; z-index:3; transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="position:absolute; top:-18px; left:-30px; width:75px; text-align:center; font-size:7px; color:#10b981; font-weight:700;">ESTIMACIÓN</div>
+          </div>
+
+          <div id="sim-arrow" style="position:absolute; top:50%; left:60%; width:25%; height:1px; background:linear-gradient(to right, transparent, #10b981); transform:translateY(-50%); transition: all 0.6s ease; opacity:0.4;"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <button onclick="runSim(85, 60, '15/85', 'Fuerte', 'Incertidumbre Alta: Pocos datos (Ej: Un artista con 1 sola canción).')" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] text-white/60 border border-white/5 transition-all">Caso A: Incertidumbre</button>
+          <button onclick="runSim(90, 65, '25/75', 'Medio', 'Señal Ruidosa: Datos inconsistentes (Ej: Mucha varianza en el catálogo).')" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] text-white/60 border border-white/5 transition-all">Caso B: Ruido</button>
+          <button onclick="runSim(85, 83, '95/5', 'Mínimo', 'Evidencia Sólida: Datos abundantes y limpios (Ej: Artista de 50 canciones).')" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] text-white/60 border border-white/5 transition-all">Caso C: Certeza</button>
+        </div>
+
+        <div class="p-3 bg-black/20 rounded-lg border border-white/5">
+          <div class="flex justify-between items-center mb-1">
+            <span id="sim-label" class="text-[9px] font-bold text-emerald-400">Estado del Sistema</span>
+            <span id="sim-shrink" class="badge badge-y" style="font-size:.55rem;">Shrinkage: -</span>
+          </div>
+          <p id="sim-desc" style="font-size:.65rem; color:rgba(200,208,232,0.4); line-height:1.4;">Activa un caso para verificar cómo el modelo procesa la información individual frente a la grupal.</p>
+          
+          <div class="mt-2">
+            <div class="flex justify-between text-[8px] text-white/30 mb-1">
+              <span>Peso de la Evidencia Individual (λ)</span>
+              <span id="sim-perc">0%</span>
+            </div>
+            <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+              <div id="sim-bar" style="width:0%; height:100%; background:#10b981; transition: width 0.6s ease;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloques Inferiores: Apilados Verticalmente -->
+        <div class="flex flex-col gap-3 mt-3">
+          <!-- EL INTERVALO DE LO POSIBLE -->
+          <div class="p-3 bg-purple-500/5 border border-purple-500/10 rounded-lg">
+            <div style="font-size:.6rem; color:rgba(168,85,247,0.8); font-weight:700; margin-bottom:5px; text-transform:uppercase;">El Intervalo de lo Posible</div>
+            <div class="flex items-center justify-between px-2 py-1 bg-black/20 rounded text-[10px] mb-2">
+               <span style="color:white; font-weight:700;">Media Global ($\mu$)</span>
+               <span style="color:rgba(168,85,247,0.5);">← $\hat{\mu}_j$ →</span>
+               <span style="color:white; font-weight:700;">Dato Bruto ($\bar{Y}_j$)</span>
+            </div>
+            <p style="font-size:.65rem; color:rgba(200,208,232,0.4); line-height:1.3; margin:0;">
+              El veredicto final <strong>siempre</strong> vive entre el dato y el grupo. El modelo nunca "inventa" valores fuera de este rango.
+            </p>
+          </div>
+
+          <!-- EL ÁRBITRO AUTOMÁTICO -->
+          <div class="p-3 rounded-lg" style="background:linear-gradient(45deg, rgba(56,180,248,0.05), rgba(168,85,247,0.05)); border:1px solid rgba(255,255,255,0.05);">
+            <div style="font-size:.65rem; color:#38bdf8; font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+              <i data-lucide="zap" style="width:12px; height:12px;"></i> El Árbitro Automático
+            </div>
+            <p style="font-size:.65rem; color:rgba(255,255,255,0.45); line-height:1.4; margin:0;">
+              Propiedad emergente: al multiplicar <em>Likelihood</em> × <em>Prior</em>, el modelo arbitra automáticamente entre el ruido y la señal.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function runSim(rawPos, dotPos, perc, level, desc) {
+      document.getElementById('sim-raw').style.left = rawPos + '%';
+      document.getElementById('sim-dot').style.left = dotPos + '%';
+      document.getElementById('sim-bar').style.width = perc.split('/')[0] + '%';
+      document.getElementById('sim-perc').textContent = perc.split('/')[0] + '%';
+      document.getElementById('sim-shrink').textContent = 'Shrinkage: ' + level;
+      document.getElementById('sim-desc').textContent = desc;
+      document.getElementById('sim-label').textContent = 'Simulación Activa';
+      const arrow = document.getElementById('sim-arrow');
+      arrow.style.left = dotPos + '%';
+      arrow.style.width = (rawPos - dotPos) + '%';
+    }
+  </script>
+
+  <div class="nexttip">
+    <div class="nexttip-label">Transición</div>
+    "Ya entendimos cómo el modelo equilibra grupos. ¿Pero cómo medimos si este equilibrio realmente funciona en la práctica?"
+  </div>
+</div>
+
+<!-- ══ S8 LA ESTRATEGIA: PARAMETRIZACIÓN ══ -->
+<div class="slide" id="s8">
+  <div class="stag">Estrategia · Sampling Geometry</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:12px;">La Estrategia de Solución</h2>
+  <p style="font-size:1.05rem;color:rgba(158,172,215,.6);margin-bottom:28px;">
+    No cambiamos el modelo, cambiamos el <strong>mapa</strong> para facilitar el muestreo.
+  </p>
+
+  <div class="grid gap-5" style="grid-template-columns: 1fr 1.2fr;">
+    <!-- Pilares de la Solución -->
+    <div class="flex flex-col gap-3">
+      <div class="card p-4" style="border-left:3px solid #6366f1; background:rgba(99,102,241,0.03);">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="map" style="width:18px; color:#818cf8;"></i>
+          <div style="font-size:.65rem; font-weight:700; color:#818cf8; text-transform:uppercase;">¿Qué es?</div>
+        </div>
+        <ul style="font-size:.82rem; color:rgba(210,208,240,0.9); list-style:none; padding:0; line-height:1.4;">
+          <li>• Cambio de coordenadas</li>
+          <li>• Mismo modelo</li>
+          <li>• Nueva geometría</li>
+        </ul>
+      </div>
+
+      <div class="card p-4" style="border-left:3px solid #10b981; background:rgba(16,185,129,0.03);">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="unplug" style="width:18px; color:#10b981;"></i>
+          <div style="font-size:.65rem; font-weight:700; color:#10b981; text-transform:uppercase;">¿Cómo?</div>
+        </div>
+        <ul style="font-size:.82rem; color:rgba(210,208,240,0.9); list-style:none; padding:0; line-height:1.4;">
+          <li>• Desacopla parámetros</li>
+          <li>• Reduce dependencia</li>
+          <li>• Facilita el muestreo</li>
+        </ul>
+      </div>
+
+      <div class="card p-4" style="border-left:3px solid #fbbf24; background:rgba(251,191,36,0.03);">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="shield-check" style="width:18px; color:#fbbf24;"></i>
+          <div style="font-size:.65rem; font-weight:700; color:#fbbf24; text-transform:uppercase;">¿Por qué?</div>
+        </div>
+        <ul style="font-size:.82rem; color:rgba(210,208,240,0.9); list-style:none; padding:0; line-height:1.4;">
+          <li>• Embudo → Geometría difícil</li>
+          <li>• Más esférica → Fácil</li>
+          <li>• Mejora exploración</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Gráfico de la Transformación con Anotaciones -->
+    <div class="card p-5 flex flex-col items-center justify-center bg-black/20 border-white/5">
+      <div style="font-size:.6rem; color:rgba(150,160,200,0.4); text-transform:uppercase; letter-spacing:2px; margin-bottom:20px;">Re-mapeo Geométrico</div>
+      
+      <svg viewBox="0 0 260 140" style="width:100%; height:180px;">
+        <!-- Embudo -->
+        <g transform="translate(10,0)">
+          <path d="M10,20 Q60,140 110,20" fill="none" stroke="rgba(239,68,68,0.4)" stroke-width="3" stroke-dasharray="3,2" />
+          <text x="60" y="140" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="800">DIFÍCIL (τ → 0)</text>
+        </g>
+
+        <!-- Flecha -->
+        <g transform="translate(115,50)">
+          <path d="M0,10 L30,10" stroke="rgba(255,255,255,0.4)" stroke-width="2" marker-end="url(#arrow)" />
+        </g>
+
+        <!-- Esfera -->
+        <g transform="translate(160,0)">
+          <circle cx="45" cy="65" r="40" fill="rgba(16,185,129,0.05)" stroke="rgba(16,185,129,0.4)" stroke-width="3" />
+          <text x="45" y="140" text-anchor="middle" fill="#10b981" font-size="8" font-weight="800">FÁCIL (Esfera)</text>
+        </g>
+
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(255,255,255,0.4)" />
+          </marker>
+        </defs>
+      </svg>
+      
+      <div class="voz" style="margin-top:15px; font-size:.85rem; opacity:0.9; font-weight:600;">
+        "No cambiamos el modelo, cambiamos cómo lo exploramos."
+      </div>
+    </div>
+  </div>
+
+  <div class="nexttip">
+    <div class="nexttip-label">Casos</div>
+    "Centrada vs No Centrada"
+  </div>
+</div>
+
+<!-- ══ S9 PARAMETRIZACIÓN CENTRADA ══ -->
+<div class="slide" id="s9">
+  <div class="stag">Estrategia 1 · La "Natural"</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:12px;">Parametrización Centrada</h2>
+
+  <div class="grid gap-5" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
+    <!-- Matemática -->
+    <div class="card p-5 flex flex-col items-center justify-center" style="border-left:3px solid #38bdf8; background:rgba(56,180,248,0.03);">
+      <div style="font-size:.65rem; color:#38bdf8; text-transform:uppercase; margin-bottom:15px; font-weight:700;">Definición Matemática</div>
+      <div class="thm" style="font-size:1.6rem; padding:15px;">
+        $$\theta_j \sim \mathcal{N}(\mu, \tau)$$
+      </div>
+    </div>
+
+    <!-- Puntos Clave -->
+    <div class="flex flex-col gap-3">
+      <div class="card p-4 bg-white/5 border-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="git-merge" style="width:16px; color:#38bdf8;"></i>
+          <span style="font-size:.9rem; color:rgba(255,255,255,0.8);">Sigue la jerarquía lógica de los datos.</span>
+        </div>
+      </div>
+      <div class="card p-4" style="background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.1);">
+        <div class="flex items-center gap-3">
+          <i data-lucide="alert-octagon" style="width:16px; color:#ef4444;"></i>
+          <span style="font-size:.9rem; color:#ef4444; font-weight:600;">Crítico: Ineficiente si hay pocos datos.</span>
+        </div>
+      </div>
+      <div class="card p-4 bg-white/5 border-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="layers" style="width:16px; color:rgba(255,255,255,0.4);"></i>
+          <span style="font-size:.9rem; color:rgba(255,255,255,0.6);">Los parámetros dependen entre sí.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nexttip">
+    <div class="nexttip-label">Alternativa</div>
+    "El truco de desacoplamiento"
+  </div>
+</div>
+
+<!-- ══ S10 PARAMETRIZACIÓN NO CENTRADA ══ -->
+<div class="slide" id="s10">
+  <div class="stag">Estrategia 2 · El "Truco"</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:12px;">Parametrización No Centrada</h2>
+
+  <div class="grid gap-5" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
+    <!-- Matemática -->
+    <div class="card p-5 flex flex-col items-center justify-center" style="border-left:3px solid #10b981; background:rgba(16,185,129,0.03);">
+      <div style="font-size:.65rem; color:#10b981; text-transform:uppercase; margin-bottom:15px; font-weight:700;">Cambio de Coordenadas</div>
+      <div class="thm" style="font-size:1.25rem; padding:15px;">
+        $$\tilde{z}_j \sim \mathcal{N}(0, 1)$$
+        $$\theta_j = \mu + \tau \cdot \tilde{z}_j$$
+      </div>
+    </div>
+
+    <!-- Puntos Clave -->
+    <div class="flex flex-col gap-3">
+      <div class="card p-4 bg-emerald-500/5 border-emerald-500/10">
+        <div class="flex items-center gap-3">
+          <i data-lucide="zap" style="width:16px; color:#10b981;"></i>
+          <span style="font-size:.9rem; color:#10b981; font-weight:600;">Desacoplamiento total entre parámetros.</span>
+        </div>
+      </div>
+      <div class="card p-4 bg-white/5 border-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="globe" style="width:16px; color:rgba(255,255,255,0.4);"></i>
+          <span style="font-size:.9rem; color:rgba(255,255,255,0.8);">Geometría esférica ideal para el algoritmo.</span>
+        </div>
+      </div>
+      <div class="card p-4 bg-white/5 border-white/5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="check-circle-2" style="width:16px; color:#34d399;"></i>
+          <span style="font-size:.9rem; color:rgba(255,255,255,0.8);">Convergencia robusta con pocos datos.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nexttip">
+    <div class="nexttip-label">Evidencia</div>
+    "Comparación de rendimiento"
+  </div>
+</div>
+
+<!-- ══ S11 LOO-CV ══ -->
+<div class="slide" id="s11">
+  <div class="stag">Comparación · Model Selection</div>
+  <h2 class="gh2" style="font-weight:700;margin-bottom:14px;">Leave-One-Out Cross-Validation (LOO)</h2>
+  
+  <div class="grid gap-6" style="grid-template-columns:1fr 1fr; margin-top:20px;">
+    <div class="flex flex-col gap-4">
+      <div class="card p-5" style="border-left:4px solid #818cf8; background:rgba(129,140,248,0.03);">
+        <div class="flex items-center gap-3 mb-3">
+          <i data-lucide="calculator" style="width:18px; color:#818cf8;"></i>
+          <div style="font-size:.65rem; color:#818cf8; text-transform:uppercase; font-weight:700;">Métrica ELPD</div>
+        </div>
+        <div class="thm" style="font-size:1.1rem; padding:15px;">
+          $$\text{ELPD}_{\text{LOO}} = \sum_{i=1}^n \log\,p(y_i \mid y_{-i})$$
+        </div>
+      </div>
+      <div class="card p-4 bg-white/5 border-white/10">
+        <div class="flex items-center gap-3">
+          <i data-lucide="target" style="width:16px; color:#38bdf8;"></i>
+          <span style="font-size:.9rem; color:rgba(255,255,255,0.8);">Mide la capacidad predictiva fuera de la muestra.</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card p-4 flex flex-col justify-center bg-black/20">
+       <div class="ch" style="height:180px"><canvas id="ch-loo"></canvas></div>
+       <div style="font-size:.6rem; color:rgba(255,255,255,0.3); text-align:center; margin-top:10px;">Comparación de Error Predictivo</div>
+    </div>
+  </div>
+
+  <div class="nexttip">
+    <div class="nexttip-label">Conclusión</div>
+    "Ideas clave para llevar"
+  </div>
+</div>
+
+<!-- ══ S12 RESUMEN ══ -->
+<div class="slide" id="s12">
+  <div class="stag">Síntesis Final · Key Takeaways</div>
+  <h2 class="gh" style="font-size:2rem; font-weight:700; margin-bottom:20px;">Propiedades del Modelo Jerárquico</h2>
+
+  <div class="grid gap-6" style="grid-template-columns: 1fr 1.1fr;">
+    <!-- Radar Chart -->
+    <div class="card p-5 bg-black/20 border-white/5">
+      <div style="font-size:.65rem; color:rgba(150,160,200,0.5); text-transform:uppercase; margin-bottom:15px;">Performance Multidimensional</div>
+      <div class="ch" style="height:220px"><canvas id="ch-radar"></canvas></div>
+      <div class="ch-legend" style="margin-top:15px;">
+        <div class="ch-leg-item"><div class="ch-leg-dot" style="background:rgba(215,65,200,0.6)"></div>Complete</div>
+        <div class="ch-leg-item"><div class="ch-leg-dot" style="background:rgba(56,180,248,0.6)"></div>No Pooling</div>
+        <div class="ch-leg-item" style="font-weight:800;"><div class="ch-leg-dot" style="background:rgba(52,211,153,1)"></div>Jerárquico</div>
+      </div>
+    </div>
+
+    <!-- Puntos Finales -->
+    <div class="flex flex-col gap-3">
+      <div class="card p-4" style="border-left:4px solid #6366f1; background:rgba(99,102,241,0.03);">
+        <div class="flex items-center gap-3 mb-1">
+          <i data-lucide="magnet" style="width:16px; color:#818cf8;"></i>
+          <h4 style="color:#818cf8; font-size:1rem; font-weight:700;">Shrinkage Adaptativo</h4>
+        </div>
+        <p style="font-size:.85rem; color:rgba(255,255,255,0.6);">Contracción inteligente basada en la incertidumbre.</p>
+      </div>
+      <div class="card p-4" style="border-left:4px solid #10b981; background:rgba(16,185,129,0.03);">
+        <div class="flex items-center gap-3 mb-1">
+          <i data-lucide="network" style="width:16px; color:#10b981;"></i>
+          <h4 style="color:#10b981; font-size:1rem; font-weight:700;">Intercambiabilidad</h4>
+        </div>
+        <p style="font-size:.85rem; color:rgba(255,255,255,0.6);">Aprovecha la información compartida entre grupos.</p>
+      </div>
+      <div class="card p-4" style="border-left:4px solid #fbbf24; background:rgba(251,191,36,0.03);">
+        <div class="flex items-center gap-3 mb-1">
+          <i data-lucide="shield-check" style="width:16px; color:#fbbf24;"></i>
+          <h4 style="color:#fbbf24; font-size:1rem; font-weight:700;">Incertidumbre Calibrada</h4>
+        </div>
+        <p style="font-size:.85rem; color:rgba(255,255,255,0.6);">Honestidad estadística ante datos escasos.</p>
+      </div>
+      
+      <div class="voz" style="margin-top:10px; font-weight:700; font-size:1rem; color:rgba(255,255,255,0.9);">
+        "No es más complejo, es más honesto."
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ─── CANVAS BG ─── */
+(function(){
+  const cv=document.getElementById('bg-canvas'),ctx=cv.getContext('2d');
+  let W,H,pts;
+  const G=44,GC='rgba(70,110,190,0.048)',DC='rgba(70,120,210,0.09)',N=48;
+  function sz(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+  function ip(){pts=Array.from({length:N},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.4+.35,a:Math.random()*.28+.06}));}
+  function dg(){ctx.save();ctx.strokeStyle=GC;ctx.lineWidth=1;for(let x=0;x<=W;x+=G){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}for(let y=0;y<=H;y+=G){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}ctx.fillStyle=DC;for(let x=0;x<=W;x+=G)for(let y=0;y<=H;y+=G){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill();}ctx.restore();}
+  function dp(){pts.forEach(p=>{ctx.save();ctx.globalAlpha=p.a;ctx.fillStyle='rgb(90,155,255)';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.restore();p.x+=p.vx;p.y+=p.vy;if(p.x<-8)p.x=W+8;if(p.x>W+8)p.x=-8;if(p.y<-8)p.y=H+8;if(p.y>H+8)p.y=-8;});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<82){ctx.save();ctx.globalAlpha=.036*(1-d/82);ctx.strokeStyle='rgb(70,130,255)';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();ctx.restore();}}}
+  function loop(){ctx.clearRect(0,0,W,H);dg();dp();requestAnimationFrame(loop);}
+  window.addEventListener('resize',()=>{sz();ip();});sz();ip();loop();
+})();
+
+/* ─── CHART MODAL ─── */
+let mChart=null;
+function openModal(id,title){
+  const src=charts[id];if(!src)return;
+  const canvas=document.getElementById(id);
+  const container=canvas.closest('.card') || canvas.closest('.slide');
+  document.getElementById('modal-title').textContent=title||id;
+  document.getElementById('chart-modal').classList.add('open');
+  if(mChart){mChart.destroy();mChart=null;}
+  
+  document.getElementById('modal-canvas-wrap').innerHTML='<canvas id="modal-canvas"></canvas>';
+  
+  const leg=container.querySelector('.ch-legend');
+  const note=container.querySelector('.ch-note');
+  const lWrap=document.getElementById('modal-legend-wrap');
+  const nWrap=document.getElementById('modal-note-wrap');
+  lWrap.innerHTML='';nWrap.innerHTML='';
+  if(leg)lWrap.appendChild(leg.cloneNode(true));
+  if(note)nWrap.appendChild(note.cloneNode(true));
+
+  const cfg=src.config;
+  mChart=new Chart(document.getElementById('modal-canvas'),{
+    type:cfg.type,
+    data:JSON.parse(JSON.stringify(cfg.data)),
+    options:{...cfg.options,animation:{duration:280},
+      plugins:{...(cfg.options.plugins||{}),
+        legend:{display:false},
+        tooltip:{enabled:true}},
+      scales:Object.fromEntries(Object.entries(cfg.options.scales||{}).map(([k,v])=>[k,{...v,ticks:{...v.ticks,color:'rgba(178,176,218,.7)',font:{size:12}},title:{...v.title,color:'rgba(152,150,196,.48)',font:{size:11}}}]))
+    }
+  });
+}
+function closeModal(){
+  document.getElementById('chart-modal').classList.remove('open');
+  document.getElementById('modal-legend-wrap').innerHTML='';
+  document.getElementById('modal-note-wrap').innerHTML='';
+}
+document.getElementById('chart-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+/* ─── NAVIGATION ─── */
+const slides=document.querySelectorAll('.slide');
+const dotsEl=document.getElementById('dots'),ctrEl=document.getElementById('ctr');
+const bp=document.getElementById('bp'),bn=document.getElementById('bn');
+let cur=0;const N=slides.length;
+slides.forEach((_,i)=>{const d=document.createElement('div');d.className='dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dotsEl.appendChild(d);});
+function goTo(n){
+  slides[cur].classList.remove('active');dotsEl.children[cur].classList.remove('active');
+  cur=(n+N)%N;
+  slides[cur].classList.add('active');slides[cur].scrollTop=0;dotsEl.children[cur].classList.add('active');
+  ctrEl.textContent=`${cur+1} / ${N}`;bp.disabled=cur===0;bn.disabled=cur===N-1;
+  if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([slides[cur]]);
+  initChart(cur);
+}
+function go(d){if(!document.getElementById('chart-modal').classList.contains('open'))goTo(cur+d);}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('chart-modal').classList.contains('open')){if(e.key==='Escape')closeModal();return;}
+  if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(1);}
+  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(-1);}
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.changedTouches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(dx<0?1:-1);});
+
+/* ─── CHARTS ─── */
+const PU='rgba(160,80,255,',BL='rgba(56,140,248,',GR='rgba(52,211,153,',OR='rgba(251,146,60,',WH='rgba(215,212,248,',PK='rgba(215,65,200,';
+const bO={plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:420}};
+const charts={};const inited=new Set();
+
+function mk(id,type,data,opts){
+  const el=document.getElementById(id);if(!el||charts[id])return;
+  charts[id]=new Chart(el,{type,data,options:{...bO,...opts,plugins:{...bO.plugins,...(opts.plugins||{})},scales:{...bO.scales,...(opts.scales||{})}}});
+  const wrap=el.closest('.ch');
+  if(wrap)wrap.addEventListener('click',()=>openModal(id,wrap.dataset.chartTitle||id));
+}
+
+function nPdf(x,m,s){return Math.exp(-.5*((x-m)/s)**2)/(s*Math.sqrt(2*Math.PI));}
+function linspace(a,b,n){return Array.from({length:n},(_,i)=>a+(b-a)*i/(n-1));}
+const gc=(t,lo,hi)=>({
+  x:{display:true,ticks:{color:'rgba(155,152,188,.36)',font:{size:7}},grid:{color:'rgba(255,255,255,.032)'},border:{display:false},title:{display:!!t,text:t||'',color:'rgba(145,142,178,.32)',font:{size:7}}},
+  y:{display:true,min:lo,max:hi,ticks:{color:'rgba(155,152,188,.36)',font:{size:7}},grid:{color:'rgba(255,255,255,.032)'},border:{display:false}}
+});
+
+function initChart(idx){
+  if(inited.has(idx))return;inited.add(idx);
+
+  /* S4 idx=3 — scatter intercambiabilidad */
+  if(idx===3){
+    const ds=[],cols=[PU,BL,GR,OR,'rgba(251,113,133,','rgba(167,139,250,','rgba(100,220,175,'];
+    for(let j=0;j<7;j++){const base=42+j*7,n=4+Math.floor(Math.random()*5);ds.push({data:Array.from({length:n},(_,i)=>({x:j*9+i*1.8+Math.random(),y:base+Math.random()*12-6})),backgroundColor:cols[j]+'0.75)',pointRadius:5.5});}
+    mk('ch-interch','scatter',{datasets:ds},{scales:gc(null,38,100),plugins:{legend:{display:false},tooltip:{enabled:false}}});
+  }
+
+  /* S6 idx=5 — 3 modelos */
+  if(idx===5){
+    const lbl=['A01','A04','A07','A09','A12','A15','A18','A22','A27','A30','A36','A44'];
+    const raw=[42,75,52,83,60,68,48,79,65,55,72,61],mu=63,ns=[2,8,4,20,5,10,3,15,9,4,12,6];
+    const hier=raw.map((v,i)=>{const l=ns[i]/(ns[i]+6);return l*v+(1-l)*mu;});
+    mk('ch-3models','bar',{labels:lbl,datasets:[
+      {data:Array(12).fill(mu),type:'line',borderColor:PK+'0.9)',borderDash:[6,3],borderWidth:2,pointRadius:0},
+      {data:raw,backgroundColor:BL+'0.28)',borderColor:BL+'0.58)',borderWidth:1,borderRadius:5,borderSkipped:false,barPercentage:.5},
+      {data:hier,type:'line',borderColor:GR+'0.92)',borderWidth:2,pointRadius:3.5,pointBackgroundColor:GR+'0.85)',tension:.14}
+    ]},{
+      scales:{x:{display:true,ticks:{color:'rgba(155,152,188,.4)',font:{size:7.5}},grid:{display:false},border:{display:false}},y:{display:true,min:30,max:95,ticks:{color:'rgba(155,152,188,.36)',font:{size:7},stepSize:15},grid:{color:'rgba(255,255,255,.032)'},border:{display:false}}},
+      plugins:{legend:{display:false},tooltip:{enabled:true,callbacks:{label:c=>`${c.raw?.toFixed?.(1)??''}`}}}
+    });
+  }
+
+  /* S11 idx=10 — LOO */
+  if(idx===10){
+    mk('ch-loo','bar',{labels:['Pooled','Rand. Intercepts','Rand. Slopes'],datasets:[{
+      data:[-820,-745,-735],
+      backgroundColor:[PK+'0.34)',BL+'0.36)',GR+'0.46)'],
+      borderColor:[PK+'0.72)',BL+'0.72)',GR+'0.72)'],
+      borderWidth:1,borderRadius:8,borderSkipped:false
+    }]},{
+      indexAxis:'y',
+      scales:{x:{display:true,min:-840,max:-715,ticks:{color:'rgba(155,152,188,.36)',font:{size:7}},grid:{color:'rgba(255,255,255,.032)'},border:{display:false},title:{display:true,text:'ELPD_LOO',color:'rgba(145,142,178,.32)',font:{size:7}}},y:{display:true,ticks:{color:'rgba(155,152,188,.5)',font:{size:8.5}},grid:{display:false},border:{display:false}}},
+      plugins:{legend:{display:false},tooltip:{enabled:true,callbacks:{label:c=>`ELPD: ${c.raw}`}}}
+    });
+  }
+
+  /* S12 idx=11 — radar */
+  if(idx===11){
+    mk('ch-radar','radar',{
+      labels:['Simplicidad','Flexibilidad','Grupos\npequeños','Pred. nuevos','Calibración'],
+      datasets:[
+        {label:'Complete Pooling',data:[10,2,3,5,5],borderColor:PK+'0.7)',backgroundColor:PK+'0.065)',borderWidth:1.8,pointRadius:2.5,pointBackgroundColor:PK+'0.7)'},
+        {label:'No Pooling',data:[5,10,2,1,4],borderColor:BL+'0.7)',backgroundColor:BL+'0.065)',borderWidth:1.8,pointRadius:2.5,pointBackgroundColor:BL+'0.7)'},
+        {label:'Jerárquico',data:[6,8,9,9,9],borderColor:GR+'0.8)',backgroundColor:GR+'0.075)',borderWidth:1.8,pointRadius:2.5,pointBackgroundColor:GR+'0.8)'}
+      ]
+    },{
+      scales:{r:{display:true,min:0,max:10,ticks:{display:false},grid:{color:'rgba(255,255,255,.052)'},angleLines:{color:'rgba(255,255,255,.052)'},pointLabels:{color:'rgba(168,165,205,.56)',font:{size:8}}}},
+      plugins:{legend:{display:true,labels:{color:'rgba(168,165,205,.58)',font:{size:7.5},boxWidth:9}},tooltip:{enabled:true}}
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  if(window.lucide)lucide.createIcons();
+  goTo(0);
+});
+</script>
+</body>
+</html>

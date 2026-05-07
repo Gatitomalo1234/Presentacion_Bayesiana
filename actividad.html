@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RPG Bayesiano - Edición Multi-Nivel</title>
+    <link rel="icon" href="data:,">
     <style>
         * { box-sizing: border-box; touch-action: none; user-select: none; -webkit-user-select: none; }
         body { 
@@ -32,9 +33,11 @@
 
         /* --- CONTROLES MÓVILES --- */
         #dpad {
-            position: absolute; bottom: 20px; left: 20px;
-            width: 175px; height: 175px;
-            display: none; opacity: 0.7; z-index: 300;
+            position: absolute;
+            bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+            left:   calc(30px + env(safe-area-inset-left,   0px));
+            width: 192px; height: 192px;
+            display: none; opacity: 0.75; z-index: 300;
             touch-action: none;
         }
         .dbtn {
@@ -43,46 +46,80 @@
             display: flex; justify-content: center; align-items: center;
             touch-action: none; transition: background 0.08s;
         }
-        .dbtn svg { width: 28px; height: 28px; fill: #fff; }
+        .dbtn svg { width: 30px; height: 30px; fill: #fff; }
         .dbtn.pressed, .dbtn:active { background: rgba(168,85,247,0.55); border-color: #a855f7; }
-        #btn-up    { top: 0;   left: 57px; width: 60px; height: 60px; }
-        #btn-down  { bottom:0; left: 57px; width: 60px; height: 60px; }
-        #btn-left  { top: 57px; left: 0;   width: 60px; height: 60px; }
-        #btn-right { top: 57px; right:0;   width: 60px; height: 60px; }
-        /* Centro decorativo del d-pad */
+        /* Botones 66px para superar el mínimo táctil de 44px con margen */
+        #btn-up    { top: 0;    left: 63px; width: 66px; height: 66px; }
+        #btn-down  { bottom: 0; left: 63px; width: 66px; height: 66px; }
+        #btn-left  { top: 63px; left: 0;    width: 66px; height: 66px; }
+        #btn-right { top: 63px; right: 0;   width: 66px; height: 66px; }
         #dpad::after {
-            content:''; position:absolute; top:57px; left:57px;
-            width:60px; height:60px; border-radius:8px;
+            content:''; position:absolute; top:63px; left:63px;
+            width:66px; height:66px; border-radius:8px;
             background:rgba(30,30,60,0.3); border:1px solid rgba(255,255,255,0.15);
         }
 
         #btn-action {
-            position: absolute; bottom: 25px; right: 20px;
-            width: 80px; height: 80px; border-radius: 50%;
+            position: absolute;
+            bottom: calc(35px + env(safe-area-inset-bottom, 0px));
+            right:  calc(30px + env(safe-area-inset-right,  0px));
+            width: 88px; height: 88px; border-radius: 50%;
             background: rgba(168,85,247,0.25); border: 3px solid #a855f7;
             display: none; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 28px; color: #fff; z-index: 300;
+            font-weight: bold; font-size: 30px; color: #fff; z-index: 300;
             opacity: 0.82; box-shadow: 0 0 16px #a855f7; touch-action: none;
         }
         #btn-action.pressed, #btn-action:active { background: rgba(168,85,247,0.7); transform: scale(0.93); }
 
-        /* Toggle de gamepad (escritorio + tablets) */
+        /* Toggle de gamepad — mínimo 44px, respeta notch */
         #gamepad-toggle {
-            position: absolute; top: 10px; right: 10px;
-            width: 34px; height: 34px; border-radius: 8px;
+            position: absolute;
+            top:   calc(10px + env(safe-area-inset-top,   0px));
+            right: calc(10px + env(safe-area-inset-right, 0px));
+            width: 44px; height: 44px; border-radius: 10px;
             background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25);
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px; cursor: pointer; z-index: 300; opacity: 0.65;
+            font-size: 20px; cursor: pointer; z-index: 300; opacity: 0.65;
             user-select: none;
         }
         #gamepad-toggle:hover { opacity: 1; }
 
+        #pause-btn {
+            position: absolute;
+            top:   calc(60px + env(safe-area-inset-top,   0px));
+            right: calc(10px + env(safe-area-inset-right, 0px));
+            width: 44px; height: 44px; border-radius: 10px;
+            background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; cursor: pointer; z-index: 300; opacity: 0.65;
+            user-select: none;
+        }
+        #pause-btn:hover { opacity: 1; }
+        #pause-btn.active { opacity: 1; border-color: #a855f7; background: rgba(168,85,247,0.3); }
+
+        /* Tablet landscape: d-pad y botón más grandes */
+        @media (orientation: landscape) and (min-height: 500px) {
+            #dpad { width: 220px; height: 220px; }
+            #btn-up    { left: 77px;  width: 66px; height: 66px; }
+            #btn-down  { left: 77px;  width: 66px; height: 66px; }
+            #btn-left  { top:  77px;  width: 66px; height: 66px; }
+            #btn-right { top:  77px;  width: 66px; height: 66px; }
+            #dpad::after { top: 77px; left: 77px; width: 66px; height: 66px; }
+            #btn-action { width: 100px; height: 100px; font-size: 34px; }
+        }
+
         /* --- UI & MODALS --- */
         #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
-        
-        #hud { position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; }
-        .gem-box { 
-            width: 28px; height: 28px; border: 2px solid #333; background: #1a1a24;
+
+        #hud {
+            position: absolute;
+            top:  calc(15px + env(safe-area-inset-top,  0px));
+            left: calc(15px + env(safe-area-inset-left, 0px));
+            display: flex; gap: 8px;
+        }
+        .gem-box {
+            width: clamp(26px, 4vw, 32px); height: clamp(26px, 4vw, 32px);
+            border: 2px solid #333; background: #1a1a24;
             display: flex; justify-content: center; align-items: center; border-radius: 4px;
             opacity: 0.3; transition: all 0.3s;
         }
@@ -93,21 +130,24 @@
         }
         .gem-box.active { opacity: 1; border-color: var(--c); box-shadow: 0 0 10px var(--c); }
         .gem-box.collected { animation: gemPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .gem-icon { width: 14px; height: 14px; transform: rotate(45deg); background: var(--c); }
+        .gem-icon { width: clamp(12px, 1.8vw, 16px); height: clamp(12px, 1.8vw, 16px); transform: rotate(45deg); background: var(--c); }
 
         .modal-bg {
             position: absolute; inset: 0; background: rgba(0,0,0,0.8);
             display: none; align-items: center; justify-content: center; pointer-events: auto;
             transition: opacity 0.18s ease;
+            overflow-y: auto; padding: 12px 0;
         }
         .modal-bg.hidden { opacity: 0; pointer-events: none; }
-        
+
         .modal {
             background: #1e1e2f; border: 4px solid #a855f7; border-radius: 8px;
-            padding: 20px; width: 85%; max-width: 500px;
+            padding: 20px; width: 88%; max-width: 500px;
+            max-height: 90vh; overflow-y: auto;
             color: #e2e8f0; position: relative;
             box-shadow: 0 10px 25px rgba(0,0,0,0.9);
             animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            flex-shrink: 0;
         }
         @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         
@@ -120,16 +160,16 @@
         .options { display: flex; flex-direction: column; gap: 10px; }
         .btn {
             background: #2d2d44; color: #fff; border: 2px solid #5a5a7a; border-radius: 6px;
-            padding: 12px; cursor: pointer; font-family: inherit; font-size: clamp(12px, 2.5vw, 15px);
-            text-align: left; transition: all 0.2s;
+            padding: 14px 12px; cursor: pointer; font-family: inherit; font-size: clamp(13px, 2.5vw, 15px);
+            text-align: left; transition: all 0.2s; min-height: 48px;
         }
         .btn:hover, .btn:active { background: #3d3d5c; border-color: #a855f7; }
         .btn.center { text-align: center; background: #a855f7; border-color: #d8b4fe; font-weight: bold; }
         .btn.center:hover, .btn.center:active { background: #9333ea; }
 
         .door-glyph {
-            position: absolute; color: #fff; font-size: 10px; font-weight: bold;
-            background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
+            position: absolute; color: #fff; font-size: clamp(10px, 1.4vw, 13px); font-weight: bold;
+            background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 4px;
             border: 1px solid currentColor; white-space: nowrap; pointer-events: none;
             transform: translate(-50%, -100%);
         }
@@ -150,6 +190,195 @@
             30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
             40%, 60% { transform: translate3d(6px, 0, 0); }
         }
+
+        /* ===== PANTALLA CLICK TO START ===== */
+        #click-to-start {
+            position: absolute; inset: 0; z-index: 999;
+            overflow: hidden; cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Fondo */
+        .cts-bg {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 0%,   rgba(88,28,135,0.55) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 50% 100%, rgba(40,0,80,0.7)    0%, transparent 70%),
+                linear-gradient(175deg, #070210 0%, #0d0520 45%, #060112 100%);
+        }
+
+        /* Estrellas con box-shadow */
+        .cts-bg::before {
+            content: ''; position: absolute; width: 2px; height: 2px;
+            background: rgba(255,255,255,0.9); border-radius: 50%;
+            box-shadow:
+                42px 18px 0 rgba(255,255,255,0.8),  95px 45px 0 rgba(255,255,255,0.5),
+                187px 12px 0 rgba(255,255,255,0.9), 234px 67px 0 rgba(255,255,255,0.4),
+                312px 28px 0 rgba(255,255,255,0.7), 398px 55px 0 rgba(255,255,255,0.6),
+                456px 8px 0 rgba(255,255,255,0.9),  523px 38px 0 rgba(255,255,255,0.5),
+                601px 22px 0 rgba(255,255,255,0.8), 678px 49px 0 rgba(255,255,255,0.4),
+                745px 15px 0 rgba(255,255,255,0.7), 823px 41px 0 rgba(255,255,255,0.6),
+                867px 72px 0 rgba(255,255,255,0.5), 156px 82px 0 rgba(255,255,255,0.4),
+                289px 73px 0 rgba(255,255,255,0.8), 412px 91px 0 rgba(255,255,255,0.5),
+                534px 78px 0 rgba(255,255,255,0.9), 667px 85px 0 rgba(255,255,255,0.4),
+                789px 70px 0 rgba(255,255,255,0.6), 134px 134px 0 rgba(255,255,255,0.5),
+                267px 118px 0 rgba(255,255,255,0.8),389px 142px 0 rgba(255,255,255,0.4),
+                512px 127px 0 rgba(255,255,255,0.7),634px 115px 0 rgba(255,255,255,0.6),
+                756px 139px 0 rgba(255,255,255,0.5),878px 122px 0 rgba(255,255,255,0.8),
+                67px 167px 0 rgba(255,255,255,0.4), 198px 178px 0 rgba(255,255,255,0.7),
+                334px 192px 0 rgba(255,255,255,0.5),467px 169px 0 rgba(255,255,255,0.9),
+                589px 185px 0 rgba(255,255,255,0.4),712px 174px 0 rgba(255,255,255,0.6),
+                834px 161px 0 rgba(255,255,255,0.7),45px 220px 0 rgba(255,255,255,0.5),
+                178px 234px 0 rgba(255,255,255,0.4),312px 215px 0 rgba(255,255,255,0.8),
+                445px 228px 0 rgba(255,255,255,0.5),567px 208px 0 rgba(255,255,255,0.7),
+                689px 219px 0 rgba(255,255,255,0.4),812px 231px 0 rgba(255,255,255,0.6),
+                23px 282px 0 rgba(255,255,255,0.8), 156px 267px 0 rgba(255,255,255,0.5),
+                289px 278px 0 rgba(255,255,255,0.4),412px 291px 0 rgba(255,255,255,0.7),
+                534px 275px 0 rgba(255,255,255,0.6),667px 288px 0 rgba(255,255,255,0.5),
+                789px 264px 0 rgba(255,255,255,0.8),78px 312px 0 rgba(255,255,255,0.4),
+                211px 325px 0 rgba(255,255,255,0.7),334px 308px 0 rgba(255,255,255,0.5),
+                456px 319px 0 rgba(255,255,255,0.6),578px 298px 0 rgba(255,255,255,0.8),
+                701px 315px 0 rgba(255,255,255,0.4),823px 328px 0 rgba(255,255,255,0.5);
+            animation: ctsTwinkle 4s ease-in-out infinite alternate;
+        }
+        .cts-bg::after {
+            content: ''; position: absolute; width: 1px; height: 1px;
+            background: rgba(255,255,255,0.7); border-radius: 50%;
+            box-shadow:
+                119px 33px 0 rgba(200,180,255,0.7), 345px 19px 0 rgba(200,180,255,0.5),
+                567px 42px 0 rgba(200,180,255,0.8), 788px 27px 0 rgba(200,180,255,0.6),
+                23px 95px 0 rgba(200,180,255,0.4),  234px 108px 0 rgba(200,180,255,0.7),
+                456px 88px 0 rgba(200,180,255,0.5), 678px 102px 0 rgba(200,180,255,0.8),
+                890px 95px 0 rgba(200,180,255,0.4), 112px 158px 0 rgba(200,180,255,0.6),
+                345px 171px 0 rgba(200,180,255,0.5),567px 148px 0 rgba(200,180,255,0.7),
+                789px 163px 0 rgba(200,180,255,0.4),56px 248px 0 rgba(200,180,255,0.6);
+            animation: ctsTwinkle 6s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes ctsTwinkle { from { opacity: 0.6; } to { opacity: 1; } }
+
+        /* Orbes mágicos flotantes */
+        .cts-orb {
+            position: absolute; border-radius: 50%; pointer-events: none;
+        }
+        .cts-orb:nth-child(1) { width:10px; height:10px; background:rgba(168,85,247,0.85); left:12%; top:18%; filter:blur(3px); animation: ctsOrb 7s ease-in-out infinite; }
+        .cts-orb:nth-child(2) { width:6px;  height:6px;  background:rgba(251,191,36,0.9);  left:82%; top:32%; filter:blur(2px); animation: ctsOrb 9s ease-in-out infinite 1.2s; }
+        .cts-orb:nth-child(3) { width:8px;  height:8px;  background:rgba(56,189,248,0.8);  left:22%; top:55%; filter:blur(3px); animation: ctsOrb 8s ease-in-out infinite 2.4s; }
+        .cts-orb:nth-child(4) { width:5px;  height:5px;  background:rgba(255,255,255,0.9); left:73%; top:14%; filter:blur(1px); animation: ctsOrb 6s ease-in-out infinite 0.6s; }
+        .cts-orb:nth-child(5) { width:9px;  height:9px;  background:rgba(168,85,247,0.7);  left:88%; top:65%; filter:blur(3px); animation: ctsOrb 10s ease-in-out infinite 3s; }
+        .cts-orb:nth-child(6) { width:7px;  height:7px;  background:rgba(251,191,36,0.75); left:5%;  top:72%; filter:blur(2px); animation: ctsOrb 8.5s ease-in-out infinite 1.8s; }
+        @keyframes ctsOrb {
+            0%,100% { transform: translate(0,0) scale(1); opacity: 0.5; }
+            25%     { transform: translate(12px,-18px) scale(1.3); opacity: 1; }
+            50%     { transform: translate(-8px,-32px) scale(0.85); opacity: 0.7; }
+            75%     { transform: translate(18px,-22px) scale(1.1); opacity: 0.9; }
+        }
+
+        /* Glow detrás del personaje central */
+        .cts-center-glow {
+            position: absolute; bottom: -30px; left: 50%;
+            transform: translateX(-50%);
+            width: 320px; height: 420px; pointer-events: none;
+            background: radial-gradient(ellipse at 50% 80%, rgba(168,85,247,0.4) 0%, rgba(88,28,135,0.15) 50%, transparent 75%);
+        }
+
+        /* Personajes */
+        .cts-char { position: absolute; bottom: 0; object-fit: contain; max-height: 72%; }
+        .cts-char-left {
+            height: 72%; left: 8%;
+            filter: brightness(0.75) saturate(1.3);
+            animation: ctsFloatSide 4s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        .cts-char-center {
+            height: 72%; left: 50%; transform: translateX(-50%);
+            filter: brightness(1.05) saturate(1.2) drop-shadow(0 0 18px rgba(168,85,247,0.6));
+            animation: ctsFloatCenter 4.5s ease-in-out infinite 0.5s;
+            transform-origin: bottom center;
+            z-index: 2;
+        }
+        .cts-char-right {
+            height: 72%; right: 8%;
+            transform: scaleX(-1);
+            filter: brightness(0.75) saturate(1.3);
+            animation: ctsFloatSideR 3.8s ease-in-out infinite 1s;
+            transform-origin: bottom center;
+        }
+        @keyframes ctsFloatSide   { 0%,100%{transform:translateY(0)}       50%{transform:translateY(-10px)} }
+        @keyframes ctsFloatSideR  { 0%,100%{transform:scaleX(-1) translateY(0)} 50%{transform:scaleX(-1) translateY(-10px)} }
+        @keyframes ctsFloatCenter { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-13px)} }
+
+        /* Gradiente superior para legibilidad */
+        .cts-top-fade {
+            position: absolute; top: 0; left: 0; right: 0; height: 62%; pointer-events: none;
+            background: linear-gradient(180deg, rgba(5,2,12,0.92) 0%, rgba(5,2,12,0.65) 40%, transparent 100%);
+            z-index: 3;
+        }
+        /* Gradiente inferior */
+        .cts-bot-fade {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 30%; pointer-events: none;
+            background: linear-gradient(0deg, rgba(5,2,12,0.75) 0%, transparent 100%);
+            z-index: 3;
+        }
+
+        /* Contenido del título */
+        .cts-content {
+            position: absolute; top: 0; left: 0; right: 0;
+            display: flex; flex-direction: column; align-items: center;
+            padding-top: clamp(16px, 4%, 32px);
+            z-index: 4; pointer-events: none; text-align: center;
+        }
+        .cts-pre {
+            font-size: clamp(8px, 1.3vw, 11px); color: rgba(251,191,36,0.65);
+            letter-spacing: 5px; margin-bottom: 6px;
+        }
+        .cts-title {
+            font-size: clamp(26px, 5.5vw, 50px); font-weight: bold;
+            color: #fbbf24; letter-spacing: 7px;
+            text-shadow: 0 0 25px rgba(251,191,36,0.9), 0 0 60px rgba(251,191,36,0.4);
+            animation: ctsTitleGlow 3s ease-in-out infinite alternate;
+        }
+        @keyframes ctsTitleGlow {
+            from { text-shadow: 0 0 18px rgba(251,191,36,0.7), 0 0 45px rgba(251,191,36,0.3); }
+            to   { text-shadow: 0 0 30px rgba(251,191,36,1),   0 0 80px rgba(251,191,36,0.65), 0 0 120px rgba(251,191,36,0.2); }
+        }
+        .cts-sub {
+            font-size: clamp(9px, 1.5vw, 13px); color: rgba(192,132,252,0.85);
+            letter-spacing: 2px; margin-top: 8px;
+        }
+        .cts-divider {
+            display: flex; align-items: center; gap: 14px;
+            margin-top: 12px; color: rgba(251,191,36,0.55); font-size: 18px;
+        }
+        .cts-divider::before, .cts-divider::after {
+            content: '';
+            width: clamp(50px, 9vw, 110px); height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(251,191,36,0.55), transparent);
+        }
+        .cts-names {
+            display: flex; gap: clamp(28px, 6vw, 72px);
+            margin-top: 10px;
+        }
+        .cts-name {
+            font-size: clamp(9px, 1.3vw, 13px); color: rgba(200,200,220,0.7);
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        /* Botón de inicio */
+        .cts-start-btn {
+            position: absolute; bottom: clamp(12px, 3.5%, 24px); left: 50%;
+            transform: translateX(-50%); z-index: 5;
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(8,4,18,0.75); border: 1px solid rgba(251,191,36,0.55);
+            border-radius: 30px; padding: 10px 26px;
+            animation: ctsStartPulse 2.2s ease-in-out infinite;
+            white-space: nowrap;
+        }
+        .cts-start-icon { font-size: 13px; color: #fbbf24; }
+        .cts-start-text { font-size: clamp(9px, 1.4vw, 12px); color: #fde68a; letter-spacing: 3px; }
+        @keyframes ctsStartPulse {
+            0%,100% { box-shadow: 0 0 8px rgba(251,191,36,0.2);  opacity: 0.75; }
+            50%     { box-shadow: 0 0 22px rgba(251,191,36,0.55); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -157,6 +386,37 @@
 <div id="rotate-msg">
     <h2>Gira tu dispositivo</h2>
     <p>Para jugar necesitas usar tu teléfono en modo horizontal.</p>
+</div>
+
+<div id="click-to-start">
+    <div class="cts-bg"></div>
+    <div class="cts-orb"></div>
+    <div class="cts-orb"></div>
+    <div class="cts-orb"></div>
+    <div class="cts-orb"></div>
+    <div class="cts-orb"></div>
+    <div class="cts-orb"></div>
+    <div class="cts-center-glow"></div>
+    <img class="cts-char cts-char-left"   src="assets/3/C.png" alt="">
+    <img class="cts-char cts-char-center" src="assets/3/M.png" alt="">
+    <img class="cts-char cts-char-right"  src="assets/3/N.png" alt="">
+    <div class="cts-top-fade"></div>
+    <div class="cts-bot-fade"></div>
+    <div class="cts-content">
+        <div class="cts-pre">✦ &nbsp; PRESENTA &nbsp; ✦</div>
+        <div class="cts-title">RPG BAYESIANO</div>
+        <div class="cts-sub">El Dragón del Overfitting te espera</div>
+        <div class="cts-divider"><span>⚔</span></div>
+        <div class="cts-names">
+            <span class="cts-name">Kaelmor</span>
+            <span class="cts-name">Mirelion</span>
+            <span class="cts-name">Nyxar</span>
+        </div>
+    </div>
+    <div class="cts-start-btn">
+        <span class="cts-start-icon">▶</span>
+        <span class="cts-start-text">HAZ CLIC O TOCA PARA COMENZAR</span>
+    </div>
 </div>
 
 <div id="game-wrapper">
@@ -184,6 +444,8 @@
 
     <!-- Toggle gamepad -->
     <div id="gamepad-toggle" title="Mostrar/ocultar controles">🎮</div>
+    <!-- Pausa -->
+    <div id="pause-btn" title="Pausar / Reanudar (ESC)">⏸</div>
 
     <!-- Controles táctiles -->
     <div id="dpad">
@@ -222,8 +484,33 @@ function setPadVisible(v) {
 }
 setPadVisible(padVisible);
 
+// Pantalla inicial — desbloquea audio y arranca la intro
+document.getElementById('click-to-start').addEventListener('click', () => {
+    document.getElementById('click-to-start').style.display = 'none';
+    introAudio.play().catch(() => {});
+    introMusicStarted = true;
+}, { once: true });
+document.getElementById('click-to-start').addEventListener('keydown', () => {
+    document.getElementById('click-to-start').click();
+}, { once: true });
+
 // Toggle gamepad desde escritorio
 document.getElementById('gamepad-toggle').addEventListener('click', () => setPadVisible(!padVisible));
+
+// Pausa
+function togglePause() {
+    const btn = document.getElementById('pause-btn');
+    if(gameState === 'PLAY') {
+        gameState = 'PAUSED';
+        btn.classList.add('active');
+        try { ambientAudio.pause(); } catch(e) {}
+    } else if(gameState === 'PAUSED') {
+        gameState = 'PLAY';
+        btn.classList.remove('active');
+        try { ambientAudio.play(); } catch(e) {}
+    }
+}
+document.getElementById('pause-btn').addEventListener('click', togglePause);
 
 // Vibración háptica
 function haptic(ms=28) { try { if(navigator.vibrate) navigator.vibrate(ms); } catch(e){} }
@@ -239,14 +526,40 @@ let pendingLevelId = null;
 let staffGlowTime = 0;
 let gems = { gem1:false, gem2:false, gem3:false, gem4:false, gem5:false };
 let attemptCount = {};
-let gameState = 'TRANSITION'; // TRANSITION, PLAY, DIALOG, GAMEOVER
-let welcomeShown = false; 
+let gameState = 'INTRO'; // INTRO, TRANSITION, PLAY, DIALOG, GAMEOVER
 let lastTime = performance.now();
+
+// --- Proyectiles del mago ---
+let projectiles = [];
+
+// --- Estadísticas de sesión ---
+let sessionStats = {
+    startTime: null,          // Date.now() cuando comenzó el juego real
+    levelTime: 0,             // segundos en el nivel actual
+    totalFails: 0,            // intentos fallidos totales
+    levelFails: {},           // { gem1:0, gem2:0, ... }
+};
+
+// --- Banner de entrada al nivel ---
+let levelBanner = { text: '', alpha: 0, timer: 0 };
+
+// --- Estado de derrota ante el dragón ---
+let dragonDefeatAnim = 0; // timer en segundos (0 = inactivo)
+
+// --- Intro animada ---
+let introTime = 0;
+let introWizardX = -80;
+let introWalkFrame = 0;
+let introWalkTimer = 0;
+const INTRO_STARS = Array.from({length:80}, () => ({
+    x: Math.random()*480, y: Math.random()*270,
+    r: Math.random()*1.5 + 0.3,
+    twinkle: Math.random()*Math.PI*2
+}));
 const FIXED_DT = 1 / 60;
 let accumulator = 0;
 
 const CAM_LERP = 0.10;
-let shakeTime = 0;
 
 /* === SPRITE SHEET LOADING === */
 const wizardSheet = new Image();
@@ -279,11 +592,6 @@ const dragonAttackImg = new Image(); dragonAttackImg.src = 'assets/dragon/dragon
 let dragonLoadedCount = 0;
 dragonIdleImg.onload = dragonLeftImg.onload = dragonAttackImg.onload = () => { dragonLoadedCount++; };
 
-const DRAGON_ANIMS = {
-    idle: { frames: 1 },
-    attack: { frames: 1 }
-};
-
 const lampWallImg = new Image();
 lampWallImg.src = 'assets/decor/lamp_wall.png';
 const lampPostImg = new Image();
@@ -295,12 +603,19 @@ const swordStoneImg = new Image(); swordStoneImg.src = 'assets/decor/sword_stone
 const gargoyleImg = new Image(); gargoyleImg.src = 'assets/decor/gargoyle.png';
 const candelabraImg = new Image(); candelabraImg.src = 'assets/decor/candelabra.png';
 const cageImg = new Image(); cageImg.src = 'assets/decor/cage.png';
-const mushroomsImg = new Image(); mushroomsImg.src = 'assets/decor/mushrooms.png';
 const castleDoorImg = new Image(); castleDoorImg.src = 'assets/decor/castle_door.png';
 const lampHangingBlueImg = new Image(); lampHangingBlueImg.src = 'assets/decor/lamp_hanging_blue.png';
 const lampHangingBronzeImg = new Image(); lampHangingBronzeImg.src = 'assets/decor/lamp_hanging_bronze.png';
 let sceneryLoaded = 0;
-swordStoneImg.onload = gargoyleImg.onload = candelabraImg.onload = cageImg.onload = mushroomsImg.onload = castleDoorImg.onload = lampHangingBlueImg.onload = lampHangingBronzeImg.onload = () => { sceneryLoaded++; };
+swordStoneImg.onload = gargoyleImg.onload = candelabraImg.onload = cageImg.onload = castleDoorImg.onload = lampHangingBlueImg.onload = lampHangingBronzeImg.onload = () => { sceneryLoaded++; };
+
+// Pixel art extraído — para decoración del nivel 3
+const pxCageImg   = new Image(); pxCageImg.src   = 'PIXEL ART/extracted/scenery_1.png';
+const pxGolem2Img = new Image(); pxGolem2Img.src = 'PIXEL ART/extracted/scenery_15.png';
+const pxSwordImg  = new Image(); pxSwordImg.src  = 'PIXEL ART/extracted/scenery_9.png';
+const pxRocksImg  = new Image(); pxRocksImg.src  = 'PIXEL ART/extracted/scenery_19.png';
+let pxLoaded = 0;
+pxCageImg.onload = pxGolem2Img.onload = pxSwordImg.onload = pxRocksImg.onload = () => { pxLoaded++; };
 
 // Textura de pared (00.png) + spritesheet de cofres
 const wallTexImg = new Image(); wallTexImg.src = 'assets/00.png';
@@ -308,8 +623,16 @@ let wallTexReady = false; wallTexImg.onload = () => { wallTexReady = true; };
 const chestSheetImg = new Image(); chestSheetImg.src = 'assets/chests-small-alpha.png';
 let chestSheetReady = false; chestSheetImg.onload = () => { chestSheetReady = true; };
 const CHEST_FRAME_W = 29; // 117px / 4 frames ≈ 29px
+
+// Fireball sprite (level 1 orbs) — 256×256, 2×2 grid, 4 frames of 128×128
+const fireballImg = new Image(); fireballImg.src = 'assets/fireball.png';
+let fireballReady = false; fireballImg.onload = () => { fireballReady = true; };
+
+// Fire2 animation frames (level 5 lava) — 5 frames of 32×32
+const fire2Imgs = [1,2,3,4,5].map(i => { const img = new Image(); img.src = `assets/fire2/fire2-${i}.png`; return img; });
+let fire2Ready = false; fire2Imgs[4].onload = () => { fire2Ready = true; };
 const CHEST_FRAME_H = 32;
-const CHEST_SCALE = 2.2;
+const CHEST_SCALE = 1.5;
 
 function drawChestSprite(ctx, wx, wy, opened) {
     if(!chestSheetReady) return;
@@ -335,7 +658,6 @@ function drawChestSprite(ctx, wx, wy, opened) {
 
 /* === AUDIO SYSTEM === */
 let audioCtx = null;
-let ambientOsc1 = null, ambientOsc2 = null;
 let ambientStarted = false;
 
 function initAudio() {
@@ -375,6 +697,40 @@ function playSound(type) {
             gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
             osc.start(); osc.stop(audioCtx.currentTime + 1.2);
+        } else if(type === 'fireball') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.55);
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.55);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.55);
+        } else if(type === 'boss_enter') {
+            // Rugido grave amenazante al entrar a la sala del dragón
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(55, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(28, audioCtx.currentTime + 2.0);
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime + 1.5);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 2.5);
+            // Segunda capa: tono alto pulsante
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2); gain2.connect(audioCtx.destination);
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(220, audioCtx.currentTime);
+            osc2.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 1.0);
+            gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.0);
+            osc2.start(); osc2.stop(audioCtx.currentTime + 1.0);
+        } else if(type === 'defeat') {
+            // Sonido dramático de derrota (respuesta incorrecta al dragón)
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.8);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.8);
         }
     } catch(e) {}
 }
@@ -391,6 +747,29 @@ function playBlip() {
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
         osc.start(); osc.stop(audioCtx.currentTime + 0.03);
     } catch(e) {}
+}
+
+/* === MÚSICA === */
+// Intro — archivo local MP3
+const introAudio = new Audio('assets/intro.mp3');
+introAudio.volume = 0.12;
+introAudio.loop   = true;
+let introMusicStarted = false;
+
+// Ambiente — archivo local MP3
+const ambientAudio = new Audio('assets/ambient.mp3');
+ambientAudio.volume = 0.08;
+ambientAudio.loop   = true;
+
+function tryStartIntroMusic() {
+    if(introMusicStarted) return;
+    introMusicStarted = true;
+    introAudio.play().catch(() => {});
+}
+
+function switchToAmbient() {
+    try { introAudio.pause(); introAudio.currentTime = 0; } catch(e) {}
+    ambientAudio.play().catch(() => {});
 }
 
 /* === PARTICLES === */
@@ -471,87 +850,7 @@ const PAL = {
 };
 
 const SPRITES = {
-    wizard: [ // 16x26
-        "0000000011000000",
-        "0000000133100000",
-        "0000001333310000",
-        "0000013333331000",
-        "0000133333333100",
-        "0001333333333310",
-        "0013333333333310",
-        "0133333333333311",
-        "1111111111111117", // brim + staff top
-        "0000144144100017",
-        "0000144444410017",
-        "0000114444110017",
-        "0001555555551117",
-        "0012555555552177",
-        "0132555555523171",
-        "1332555555233171",
-        "1333255552333171",
-        "1333225522333171",
-        "1333322223333171",
-        "1333333333333171",
-        "1333333333333171",
-        "1333333333333171",
-        "1333333333333171",
-        "1333333333333171",
-        "0111111111111017",
-        "0011000000110001"
-    ],
-    wizard_walk: [ // frame 2
-        "0000000011000000",
-        "0000000133100000",
-        "0000001333310000",
-        "0000013333331000",
-        "0000133333333100",
-        "0001333333333310",
-        "0013333333333310",
-        "0133333333333311",
-        "1111111111111117",
-        "0000144144100017",
-        "0000144444410017",
-        "0000114444110017",
-        "0001555555551117",
-        "0012555555552177",
-        "0132555555523171",
-        "1332555555233171",
-        "1333255552333171",
-        "1333225522333171",
-        "1333322223333171",
-        "1333333333333171",
-        "1333333333333171",
-        "1333333333333171",
-        "1333333333333171",
-        "1333333333333171",
-        "0111111111111017",
-        "0001100001100001" // alternated feet
-    ],
-    chest: [
-        "000111111111111000",
-        "001999999999999100",
-        "019AA99AA99AA99A10",
-        "19A11A911A911A91A1",
-        "199999999999999991",
-        "111111111111111111",
-        "177777719917777771",
-        "177777719917777771",
-        "177777711117777771",
-        "011111111111111110"
-    ],
-    chest_open: [
-        "000000011110000000",
-        "000001122221100000",
-        "000112222222211000",
-        "001222222222222100",
-        "001999999999999100",
-        "111111111111111111",
-        "177777719917777771",
-        "177777719917777771",
-        "177777711117777771",
-        "011111111111111110"
-    ],
-    dragon: [ // 30x22
+    dragon: [ // fallback si PNG no carga // 30x22
         "000000000001111000000000000000",
         "000000000018888100000000000000",
         "110000000188888810000000000011",
@@ -725,10 +1024,15 @@ const LEVEL_DEFS = {
                 o.x += o.vx*dt; o.y += o.vy*dt;
                 if(o.x < bnd.x1 || o.x > bnd.x2) { o.vx *= -1; o.x = Math.max(bnd.x1, Math.min(bnd.x2, o.x)); }
                 if(o.y < bnd.y1 || o.y > bnd.y2) { o.vy *= -1; o.y = Math.max(bnd.y1, Math.min(bnd.y2, o.y)); }
-                // Rebotar en pilares
+                // Rebotar en pilares — push fuera del rect antes de invertir para evitar que se queden atrapados
                 this.pillars.forEach(p => {
                     if(o.x > p.x-o.r && o.x < p.x+p.w+o.r && o.y > p.y-o.r && o.y < p.y+p.h+o.r) {
-                        o.vx *= -1; o.vy *= -1;
+                        const cx = (p.x + p.w/2), cy = (p.y + p.h/2);
+                        const dx = o.x - cx, dy = o.y - cy;
+                        const overlapX = (p.w/2 + o.r) - Math.abs(dx);
+                        const overlapY = (p.h/2 + o.r) - Math.abs(dy);
+                        if(overlapX < overlapY) { o.x += Math.sign(dx) * overlapX; o.vx *= -1; }
+                        else { o.y += Math.sign(dy) * overlapY; o.vy *= -1; }
                     }
                 });
                 // Colisión con jugador → knockback (no reset total)
@@ -773,14 +1077,23 @@ const LEVEL_DEFS = {
                 ctx.strokeStyle = 'rgba(56,189,248,0.5)'; ctx.lineWidth = 1;
                 ctx.strokeRect(p.x-scx, p.y-scy, p.w, p.h);
             });
-            // Dibujar orbes
+            // Dibujar orbes como bolas de fuego
+            const fbFrame = Math.floor(performance.now() / 220) % 4;
+            const fbSx = (fbFrame % 2) * 128, fbSy = Math.floor(fbFrame / 2) * 128;
             def.outliers.forEach(o => {
-                const grd = ctx.createRadialGradient(o.x-scx, o.y-scy, 0, o.x-scx, o.y-scy, o.r*2);
-                grd.addColorStop(0, o.color); grd.addColorStop(1, 'transparent');
-                ctx.fillStyle = grd;
-                ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r*2, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#fff';
-                ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r, 0, Math.PI*2); ctx.fill();
+                const size = o.r * 3.2;
+                if(fireballReady) {
+                    ctx.save();
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(fireballImg, fbSx, fbSy, 128, 128, o.x-scx-size/2, o.y-scy-size/2, size, size);
+                    ctx.restore();
+                } else {
+                    // fallback
+                    const grd = ctx.createRadialGradient(o.x-scx, o.y-scy, 0, o.x-scx, o.y-scy, o.r*2);
+                    grd.addColorStop(0, '#f97316'); grd.addColorStop(1, 'transparent');
+                    ctx.fillStyle = grd;
+                    ctx.beginPath(); ctx.arc(o.x-scx, o.y-scy, o.r*2, 0, Math.PI*2); ctx.fill();
+                }
             });
         }
     },
@@ -840,7 +1153,7 @@ const LEVEL_DEFS = {
             if(gem) gem.active = allOn || gems.gem2;
         },
         entities: [
-            { type:'chest', id:'gem2', x:384, y:240, r:30, title:'Pooling',
+            { type:'chest', id:'gem2', x:384, y:80, r:30, title:'Pooling',
               text:'¿Cuál es el problema principal del enfoque de "No-Pooling" cuando analizamos grupos con pocos datos?',
               opts: [{t:'Asume que todos los grupos son idénticos.',c:0},{t:'Genera estimaciones con alta varianza al no compartir información.',c:1}] },
             { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
@@ -862,11 +1175,9 @@ const LEVEL_DEFS = {
                 ctx.fillRect(bx, by, bw * pct, bh);
                 ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
                 ctx.strokeRect(bx, by, bw, bh);
-                ctx.fillStyle = '#fff'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
-                ctx.fillText(`${Math.ceil(def.timer)}s`, CW/2, by + bh + 10);
                 ctx.font = '7px monospace'; ctx.textAlign = 'center';
-                ctx.fillStyle = 'rgba(200,180,255,0.6)';
-                ctx.fillText(`Siguiente: placa ${def.nextRequired}`, CW/2, by + bh + 20);
+                ctx.fillStyle = 'rgba(200,180,255,0.8)';
+                ctx.fillText(`Siguiente: placa ${def.nextRequired}  •  ${Math.ceil(def.timer)}s`, CW/2, by + bh + 10);
                 ctx.textAlign = 'left';
 
                 // Instrucción de orden
@@ -904,28 +1215,29 @@ const LEVEL_DEFS = {
         wallTint: 'rgba(0,60,30,0.40)', wallEdge: 'rgba(20,140,80,0.35)',
         playerLight: '80,180,120',
         playerStart: {x: 384, y: 455},
-        // Laberinto denso — la ruta correcta va: centro→izquierda→arriba→derecha→cofre (esq. superior derecha)
+        // Laberinto denso — ruta: inicio → izquierda → arriba → derecha → cofre (esq. sup. der.)
         walls: [
-            // Fila de separación superior — bloquea acceso directo al cofre
-            {x:48,  y:96,  w:336, h:16},  // muro sup izquierdo
-            {x:432, y:96,  w:288, h:16},  // muro sup derecho (deja paso a x=384-432)
-            // Columna central vertical
-            {x:336, y:96,  w:16,  h:192}, // columna central izq
-            {x:432, y:96,  w:16,  h:112}, // columna central der (gap en y=208)
+            // Muro superior — gap en x=336-432 (entrada izq) y x=448-528 (acceso al cofre)
+            {x:48,  y:96,  w:288, h:16},  // sup izq (48-336)
+            {x:432, y:96,  w:16,  h:16},  // pilar aislado izq-der (32px)
+            {x:528, y:96,  w:192, h:16},  // sup der (528-720)
+            // Columnas verticales desde techo
+            {x:336, y:112, w:16,  h:176}, // columna A
+            {x:432, y:112, w:16,  h:96},  // columna B corta
             // Laberinto izquierdo
-            {x:48,  y:176, w:192, h:16},  // muro horizontal izq
-            {x:48,  y:176, w:16,  h:128}, // columna izq (cierra el corredor)
-            {x:128, y:256, w:96,  h:16},  // muro inferior izq
-            {x:192, y:176, w:16,  h:96},  // columna media izq
+            {x:48,  y:208, w:16,  h:112}, // pared izq
+            {x:64,  y:208, w:128, h:16},  // horizontal izq
+            {x:192, y:208, w:16,  h:80},  // columna media izq
+            {x:128, y:272, w:64,  h:16},  // pieza baja izq (128-192)
             // Laberinto derecho
-            {x:528, y:160, w:192, h:16},  // muro horizontal der
-            {x:704, y:96,  w:16,  h:160}, // columna der
-            {x:528, y:256, w:96,  h:16},  // muro inferior der
-            {x:528, y:160, w:16,  h:112}, // columna izq der
-            // Pasillo bajo — separación inferior
-            {x:208, y:336, w:352, h:16},  // bloquea centro inferior
-            {x:208, y:336, w:16,  h:96},  // columna izq del bloqueo
-            {x:560, y:336, w:16,  h:96},  // columna der del bloqueo
+            {x:544, y:160, w:144, h:16},  // horizontal der (544-688)
+            {x:688, y:96,  w:16,  h:80},  // columna der corta
+            {x:528, y:176, w:16,  h:96},  // columna izq-der
+            {x:528, y:256, w:80,  h:16},  // pieza baja der (528-608)
+            // Separación inferior
+            {x:224, y:336, w:336, h:16},  // bloquea centro inferior (224-560)
+            {x:208, y:352, w:16,  h:80},  // columna izq
+            {x:560, y:352, w:16,  h:80},  // columna der
         ],
         init: function() {},
         update: function(dt) {
@@ -938,50 +1250,75 @@ const LEVEL_DEFS = {
             });
         },
         entities: [
-            { type:'chest', id:'gem3', x:592, y:72, r:30, title:'Modelo Jerárquico',
+            // Cofre real — en la esquina superior derecha, accesible por pasillo der
+            { type:'chest', id:'gem3', x:480, y:136, r:30, title:'Modelo Jerárquico',
               text:'En α_j ~ N(μ_α, σ_α), ¿qué representan μ_α y σ_α en el contexto bayesiano?',
               opts: [{t:'La población de interceptos entre grupos.',c:1},{t:'El error de medición individual.',c:0},{t:'La varianza residual del modelo.',c:0}] },
+            // Cofres falsos — señuelos en callejones sin salida
+            { type:'decoy_chest', x:96, y:248, r:24 },
+            { type:'decoy_chest', x:640, y:248, r:24 },
+            { type:'decoy_chest', x:384, y:430, r:24 },
             { type:'door', target:'hub', x:384, y:470, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
-            // Jaulas en los callejones sin salida del laberinto
-            { type:'decor', img:'cage', x:96, y:220, scale:1.6 },
-            { type:'decor', img:'cage', x:640, y:220, scale:1.6 },
-            // Hongos en esquinas oscuras del laberinto
-            { type:'decor', img:'mushrooms', x:80, y:420, scale:1.4 },
-            { type:'decor', img:'mushrooms', x:680, y:420, scale:1.4 },
-            { type:'decor', img:'mushrooms', x:280, y:155, scale:1.2 },
-            { type:'decor', img:'mushrooms', x:490, y:155, scale:1.2 },
-            // Lámparas en las bifurcaciones para orientar
+            // Lámparas en bifurcaciones
             { type:'floating_lamp', color:'blue', x:220, y:300 },
             { type:'floating_lamp', color:'blue', x:540, y:300 },
             { type:'floating_lamp', color:'bronze', x:384, y:200 },
         ],
         decor: (ctx, scx, scy) => {
             const def = LEVEL_DEFS['level3'];
+            const ts = 60; // 00.png tile size
             def.walls.forEach(w => {
-                // Relleno oscuro con patrón de piedra si disponible
+                // Rellenar con textura tileada
                 if(wallTexReady) {
-                    ctx.globalAlpha = 0.7;
-                    ctx.drawImage(wallTexImg,
-                        (w.x % 60), (w.y % 60), Math.min(60, w.w), Math.min(60, w.h),
-                        w.x-scx, w.y-scy, w.w, w.h);
-                    ctx.globalAlpha = 0.5;
-                    ctx.fillStyle = '#030a06';
+                    ctx.save();
+                    ctx.beginPath(); ctx.rect(w.x-scx, w.y-scy, w.w, w.h); ctx.clip();
+                    for(let tx = 0; tx < w.w; tx += ts) {
+                        for(let ty = 0; ty < w.h; ty += ts) {
+                            ctx.drawImage(wallTexImg, 0, 0, ts, ts, w.x-scx+tx, w.y-scy+ty, ts, ts);
+                        }
+                    }
+                    ctx.globalAlpha = 0.55;
+                    ctx.fillStyle = '#020d05';
                     ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
                 } else {
                     ctx.fillStyle = '#030a06';
                     ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
                 }
-                ctx.globalAlpha = 1;
-                ctx.strokeStyle = 'rgba(16,185,129,0.25)'; ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(16,185,129,0.3)'; ctx.lineWidth = 1;
                 ctx.strokeRect(w.x-scx, w.y-scy, w.w, w.h);
             });
-            // Flecha pulsante hacia el cofre desde el inicio
+
+            // Decoración pixel art del laberinto
+            if(pxLoaded >= 4) {
+                ctx.imageSmoothingEnabled = false;
+                // Golem variante en callejón inferior (guardián del cofre falso central)
+                { const w=pxGolem2Img.width*3,h=pxGolem2Img.height*3;
+                  ctx.drawImage(pxGolem2Img, 384-scx-w/2, 420-scy-h, w, h); }
+                // Jaulas colgantes en bifurcaciones (escala reducida)
+                [[192,170],[560,170],[384,150]].forEach(([cx,cy]) => {
+                    const s = 1.4, w=pxCageImg.width*s, h=pxCageImg.height*s;
+                    ctx.drawImage(pxCageImg, cx-scx-w/2, cy-scy-h, w, h);
+                });
+                // Espada en piedra — marca la entrada del laberinto (escala reducida)
+                { const s=1.8, w=pxSwordImg.width*s, h=pxSwordImg.height*s;
+                  ctx.drawImage(pxSwordImg, 384-scx-w/2, 400-scy-h, w, h); }
+                // Pilas de rocas/huesos en rincones oscuros
+                [[60,310],[700,310],[60,170],[700,170]].forEach(([rx,ry]) => {
+                    const s=2.5, w=pxRocksImg.width*s, h=pxRocksImg.height*s;
+                    ctx.drawImage(pxRocksImg, rx-scx-w/2, ry-scy-h, w, h);
+                });
+                ctx.imageSmoothingEnabled = true;
+            }
+
+            // Flecha pulsante hacia el cofre
             if(!gems.gem3) {
                 const t = performance.now()/1000;
                 const pulse = 0.4 + Math.abs(Math.sin(t*1.5)) * 0.5;
                 ctx.fillStyle = `rgba(16,185,129,${pulse})`;
                 ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
-                ctx.fillText('↑ Encuentra el cofre en el laberinto', CW/2, 18);
+                ctx.fillText('↑ Encuentra el cofre real en el laberinto', CW/2, 18);
                 ctx.textAlign = 'left';
             }
         }
@@ -993,14 +1330,13 @@ const LEVEL_DEFS = {
         wallTint: 'rgba(80,50,0,0.35)', wallEdge: 'rgba(180,120,20,0.40)',
         playerLight: '220,170,80',
         playerStart: {x: 384, y: 400},
-        windTimer: 0, windActive: 0, windDir: 1, windDuration: 0,
+        windPhase: 0, windDir: 1, windStrength: 0,
         // Orbes patrulleros (anomalías de shrinkage) en 4 alturas distintas
         patrols: [],
         init: function() {
-            this.windTimer = 5;
-            this.windActive = 0;
+            this.windPhase = 0;
             this.windDir = 1;
-            this.windDuration = 0;
+            this.windStrength = 0;
             // 4 orbes que se mueven horizontalmente en diferentes alturas
             this.patrols = [
                 {x:150, y:340, minX:80,  maxX:500, spd:90,  dir:1,  r:14, col:'#fbbf24'},
@@ -1018,19 +1354,15 @@ const LEVEL_DEFS = {
             if(player.x < midX - 15) player.x += 190 * dt;
             if(player.x > midX + 15) player.x -= 190 * dt;
 
-            // Viento cada ~5s
-            this.windTimer -= dt;
-            if(this.windTimer <= 0 && this.windActive === 0) {
-                this.windDir = Math.random() < 0.5 ? 1 : -1;
-                this.windActive = 1;
-                this.windDuration = 0.8;
-                this.windTimer = 5 + Math.random() * 2;
-            }
-            if(this.windActive) {
-                this.windDuration -= dt;
-                player.x += this.windDir * 230 * dt;
-                if(this.windDuration <= 0) this.windActive = 0;
-            }
+            // Viento constante — alterna dirección cada 4s con intensidad sinusoidal
+            this.windPhase += dt / 4.0; // 4 segundos por ciclo
+            if(this.windPhase > 1) { this.windPhase -= 1; }
+            // Primera mitad sopla → derecha, segunda mitad → izquierda
+            this.windDir = this.windPhase < 0.5 ? 1 : -1;
+            // Intensidad: fuerte en mitad del tramo, suave en la transición
+            const halfPhase = (this.windPhase % 0.5) / 0.5; // 0-1 dentro de cada medio ciclo
+            this.windStrength = Math.sin(halfPhase * Math.PI) * 280; // máximo 280px/s
+            player.x += this.windDir * this.windStrength * dt;
 
             // Mover orbes patrulleros
             this.patrols.forEach(o => {
@@ -1050,7 +1382,7 @@ const LEVEL_DEFS = {
             if(player.x < mapLeft || player.x > mapRight) {
                 player.x = this.playerStart.x;
                 player.y = this.playerStart.y;
-                this.windActive = 0;
+                this.windPhase = 0; // reset al cruce de muro
                 triggerScreenShake(); haptic(80);
             }
         },
@@ -1098,12 +1430,13 @@ const LEVEL_DEFS = {
                 ctx.stroke();
             });
 
-            // Indicador de viento
-            if(def.windActive) {
-                const alpha = 0.6 + Math.abs(Math.sin(performance.now()/180)) * 0.4;
-                ctx.fillStyle = `rgba(251,191,36,${alpha})`;
+            // Indicador de viento — siempre visible, intensidad varía
+            {
+                const wAlpha = 0.2 + (def.windStrength / 280) * 0.8;
+                ctx.fillStyle = `rgba(251,191,36,${wAlpha})`;
                 ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
-                ctx.fillText(def.windDir > 0 ? '→ VIENTO →' : '← VIENTO ←', CW/2, 30);
+                const arrow = def.windDir > 0 ? '→→ VIENTO →→' : '←← VIENTO ←←';
+                ctx.fillText(arrow, CW/2, 30);
                 ctx.textAlign = 'left';
             }
 
@@ -1126,7 +1459,7 @@ const LEVEL_DEFS = {
         light: 'rgba(239,68,68,0.22)', pType: 'lava',
         wallTint: 'rgba(100,10,10,0.40)', wallEdge: 'rgba(200,40,20,0.35)',
         playerLight: '220,80,40',
-        playerStart: {x: 384, y: 430},
+        playerStart: {x: 384, y: 400},
         // Pozas reposicionadas dentro del corredor forzado
         pools: [
             {x:288, y:160, r:44, period:4.5, phase:0,    row:'top'},
@@ -1134,15 +1467,25 @@ const LEVEL_DEFS = {
             {x:288, y:280, r:36, period:3.5, phase:1.5,  row:'bot'},
             {x:480, y:280, r:36, period:3.5, phase:3.0,  row:'bot'},
         ],
-        spikes: [{x:256,y:340,r:18},{x:384,y:320,r:18},{x:512,y:340,r:18}],
-        // Paredes que cierran el bypass lateral y fuerzan pasar por los peligros
+        spikes: [
+            {x:256,y:340,r:18},{x:384,y:320,r:18},{x:512,y:340,r:18},
+            {x:192,y:360,r:16},{x:576,y:360,r:16},{x:320,y:356,r:16},{x:448,y:356,r:16},
+        ],
+        // Paredes que fuerzan cruzar ENCIMA de los charcos — sin paso por el suelo normal
         walls: [
-            {x:48,  y:88,  w:16, h:352},
-            {x:704, y:88,  w:16, h:352},
-            {x:64,  y:112, w:160, h:16},
-            {x:544, y:112, w:176, h:16},
-            {x:64,  y:224, w:128, h:16},
-            {x:576, y:224, w:160, h:16},
+            {x:48,  y:88,  w:16, h:352},  // muro lateral izq
+            {x:704, y:88,  w:16, h:352},  // muro lateral der
+            // Franja superior — gap exacto en las dos pozas (x=244-332 pool A, x=436-524 pool B)
+            {x:64,  y:112, w:180, h:16},  // bloque izq (64-244)
+            {x:332, y:112, w:104, h:16},  // bloque centro entre pools (332-436)
+            {x:524, y:112, w:180, h:16},  // bloque der (524-704)
+            // Franja media — mismo esquema para pools inferiores
+            {x:64,  y:224, w:180, h:16},
+            {x:332, y:224, w:104, h:16},
+            {x:524, y:224, w:180, h:16},
+            // Franja spike — fuerza paso por área de spikes
+            {x:64,  y:350, w:128, h:16},
+            {x:576, y:350, w:128, h:16},
         ],
         chestOpen: false,  // se abre solo cuando las dos pozas superiores están inactivas
         init: function() {
@@ -1190,10 +1533,10 @@ const LEVEL_DEFS = {
             if(gem) gem.active = this.chestOpen || gems.gem5;
         },
         entities: [
-            { type:'chest', id:'gem5', x:384, y:100, r:30, title:'Geometría del MCMC',
+            { type:'chest', id:'gem5', x:384, y:64, r:30, title:'Geometría del MCMC',
               text:'Para evitar el "Embudo de Neal" en un modelo jerárquico con MCMC, ¿qué técnica usas?',
               opts: [{t:'Parametrización Centrada',c:0},{t:'Parametrización No Centrada',c:1},{t:'Aumentar el número de cadenas',c:0}] },
-            { type:'door', target:'hub', x:384, y:460, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
+            { type:'door', target:'hub', x:384, y:456, r:40, color:'#fff', label:'Volver al Hub', customImg:true },
             { type:'decor', img:'cage', x:180, y:120, scale:2 },
             { type:'decor', img:'cage', x:588, y:120, scale:2 }
         ],
@@ -1201,42 +1544,64 @@ const LEVEL_DEFS = {
             const def = LEVEL_DEFS['level5'];
             const t = performance.now()/1000;
 
-            // Paredes del corredor con textura
+            // Paredes del corredor con textura tileada
+            const ts5 = 60;
             def.walls.forEach(w => {
-                ctx.fillStyle = 'rgba(60,5,5,0.9)';
+                ctx.fillStyle = 'rgba(60,5,5,0.95)';
                 ctx.fillRect(w.x-scx, w.y-scy, w.w, w.h);
                 if(wallTexReady) {
-                    ctx.globalAlpha = 0.55;
-                    ctx.drawImage(wallTexImg, w.x-scx, w.y-scy, w.w, w.h);
+                    ctx.save();
+                    ctx.beginPath(); ctx.rect(w.x-scx, w.y-scy, w.w, w.h); ctx.clip();
+                    ctx.globalAlpha = 0.5;
+                    for(let tx = 0; tx < w.w; tx += ts5)
+                        for(let ty = 0; ty < w.h; ty += ts5)
+                            ctx.drawImage(wallTexImg, 0, 0, ts5, ts5, w.x-scx+tx, w.y-scy+ty, ts5, ts5);
                     ctx.globalAlpha = 1;
+                    ctx.restore();
                 }
-                ctx.strokeStyle = 'rgba(200,40,20,0.45)'; ctx.lineWidth = 1.5;
+                ctx.strokeStyle = 'rgba(200,40,20,0.5)'; ctx.lineWidth = 1.5;
                 ctx.strokeRect(w.x-scx, w.y-scy, w.w, w.h);
             });
 
-            // Pozas de lava — naranja-ámbar
+            // Pozas de lava con fire2 animado
+            const f2Frame = Math.floor(t * 8) % 5; // 8fps
+            const f2Img = fire2Ready ? fire2Imgs[f2Frame] : null;
             def.pools.forEach(p => {
-                const glow = p.active ? (0.7 + Math.sin(t*8)*0.2) : 0.15;
-                ctx.fillStyle = p.active ? `rgba(249,115,22,${glow})` : 'rgba(100,30,10,0.4)';
-                ctx.beginPath(); ctx.ellipse(p.x-scx, p.y-scy, p.r, p.r*0.55, 0, 0, Math.PI*2); ctx.fill();
                 if(p.active) {
-                    const grad = ctx.createRadialGradient(p.x-scx, p.y-scy, 0, p.x-scx, p.y-scy, p.r*1.5);
-                    grad.addColorStop(0, 'rgba(253,186,116,0.4)'); grad.addColorStop(1, 'transparent');
+                    // Base naranja-ámbar
+                    ctx.fillStyle = 'rgba(249,115,22,0.75)';
+                    ctx.beginPath(); ctx.ellipse(p.x-scx, p.y-scy, p.r, p.r*0.55, 0, 0, Math.PI*2); ctx.fill();
+                    // Tile fire2 sobre el charco
+                    if(f2Img) {
+                        const tileS = 28;
+                        ctx.save();
+                        ctx.beginPath(); ctx.ellipse(p.x-scx, p.y-scy, p.r, p.r*0.55, 0, 0, Math.PI*2); ctx.clip();
+                        ctx.imageSmoothingEnabled = false;
+                        for(let fx = p.x - p.r; fx < p.x + p.r; fx += tileS)
+                            for(let fy = p.y - p.r*0.55; fy < p.y + p.r*0.55; fy += tileS)
+                                ctx.drawImage(f2Img, 0, 0, 32, 32, fx-scx, fy-scy, tileS, tileS);
+                        ctx.restore();
+                    }
+                    // Glow exterior
+                    const grad = ctx.createRadialGradient(p.x-scx, p.y-scy, 0, p.x-scx, p.y-scy, p.r*1.6);
+                    grad.addColorStop(0, 'rgba(253,186,116,0.35)'); grad.addColorStop(1, 'transparent');
                     ctx.fillStyle = grad;
-                    ctx.beginPath(); ctx.arc(p.x-scx, p.y-scy, p.r*1.5, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(p.x-scx, p.y-scy, p.r*1.6, 0, Math.PI*2); ctx.fill();
+                } else {
+                    ctx.fillStyle = 'rgba(80,20,5,0.5)';
+                    ctx.beginPath(); ctx.ellipse(p.x-scx, p.y-scy, p.r, p.r*0.55, 0, 0, Math.PI*2); ctx.fill();
                 }
             });
 
-            // Spikes — gris metálico oscuro
+            // Spikes — gris metálico
             def.spikes.forEach(sp => {
                 ctx.fillStyle = '#374151';
                 ctx.beginPath();
                 ctx.moveTo(sp.x-scx, sp.y-sp.r-scy);
-                ctx.lineTo(sp.x+sp.r*0.6-scx, sp.y+sp.r*0.5-scy);
-                ctx.lineTo(sp.x-sp.r*0.6-scx, sp.y+sp.r*0.5-scy);
+                ctx.lineTo(sp.x+sp.r*0.65-scx, sp.y+sp.r*0.5-scy);
+                ctx.lineTo(sp.x-sp.r*0.65-scx, sp.y+sp.r*0.5-scy);
                 ctx.closePath(); ctx.fill();
-                ctx.strokeStyle='#9ca3af'; ctx.lineWidth=1.2;
-                ctx.stroke();
+                ctx.strokeStyle='#9ca3af'; ctx.lineWidth=1.2; ctx.stroke();
             });
 
             // Indicador de ventana de acceso al cofre
@@ -1281,6 +1646,13 @@ const keys = { w:0, a:0, s:0, d:0, action:0 };
 const touches = { up:0, down:0, left:0, right:0, action:0 };
 
 window.addEventListener('keydown', e => {
+    tryStartIntroMusic(); // primer keydown desbloquea audio de intro
+    if(gameState === 'INTRO' && introTime > 1.0) { startFromIntro(); return; }
+    if(e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        togglePause();
+        return;
+    }
+    if(gameState === 'PAUSED') return;
     if(['w','ArrowUp'].includes(e.key)) keys.w = 1;
     if(['s','ArrowDown'].includes(e.key)) keys.s = 1;
     if(['a','ArrowLeft'].includes(e.key)) keys.a = 1;
@@ -1319,6 +1691,12 @@ function bindBtn(id, key) {
     el.addEventListener('touchcancel',e=>{ setTouch(key,0); });
 }
 Object.entries(btnMap).forEach(([id,key]) => bindBtn(id, key));
+
+// Toque en el canvas durante la pantalla de intro → comenzar juego
+canvas.addEventListener('touchstart', e => {
+    tryStartIntroMusic();
+    if(gameState === 'INTRO' && introTime > 1.0) { e.preventDefault(); startFromIntro(); }
+}, {passive:false});
 
 // touchmove global: detectar deslizamiento entre botones d-pad
 document.getElementById('dpad').addEventListener('touchmove', e => {
@@ -1463,7 +1841,6 @@ function hasAllGems() { return gems.gem1 && gems.gem2 && gems.gem3 && gems.gem4 
 function dist(x1,y1,x2,y2) { return Math.sqrt((x2-x1)**2 + (y2-y1)**2); }
 
 function triggerScreenShake() {
-    shakeTime = 0.4;
     const gw = document.getElementById('game-wrapper');
     gw.classList.remove('shake');
     void gw.offsetWidth;
@@ -1554,50 +1931,81 @@ function handleAnswer(isCorrect) {
                 emitParticles(currentDialog.x, currentDialog.y, 40, ['#fbbf24','#fff','#38bdf8']);
                 showModal('¡Correcto!', 'Adquieres una Gema de Sabiduría.' + tryTxt, false, null);
             } else if(currentDialog.type === 'dragon') {
-                if(!currentDialog.phase2) {
-                    currentDialog.phase2 = true;
-                    showModal('¡El Dragón Tiembla!', currentDialog.phase2Text, true, currentDialog.phase2Opts);
-                    triggerScreenShake();
-                    shakeTime = 0.5;
-                    playSound('dragon');
-                    emitParticles(currentDialog.x, currentDialog.y, 60, ['#ef4444','#fbbf24','#fff']);
-                } else {
-                    emitParticles(currentDialog.x, currentDialog.y, 150, ['#fbbf24','#fff','#10b981','#38bdf8']);
-                    currentDialog.defeated = true;
-                    gameState = 'GAMEOVER';
-                    playSound('gem');
-                    showModal('¡VICTORIA ÉPICA!', '¡El poder de la Regularización y Validación Bayesiana ha purificado al Dragón del Overfitting!<br><br>Has dominado el Arte del Análisis Multinivel.', false, null);
-                }
+                const drag = currentDialog;
+                gameState = 'PLAY'; // reactivar para que update() procese proyectiles
+                fireProjectile(player.x, player.y, drag.x, drag.y, () => {
+                    if(!drag.phase2) {
+                        drag.phase2 = true;
+                        showModal('¡El Dragón Tiembla!', drag.phase2Text, true, drag.phase2Opts);
+                        triggerScreenShake();
+                        playSound('dragon');
+                        emitParticles(drag.x, drag.y, 60, ['#ef4444','#fbbf24','#fff']);
+                    } else {
+                        emitParticles(drag.x, drag.y, 150, ['#fbbf24','#fff','#10b981','#38bdf8']);
+                        drag.defeated = true;
+                        gameState = 'GAMEOVER';
+                        playSound('gem');
+                        // Calcular tiempo total
+                        const elapsed = sessionStats.startTime
+                            ? Math.floor((Date.now() - sessionStats.startTime) / 1000) : 0;
+                        const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                        const ss = String(elapsed % 60).padStart(2, '0');
+                        const gemsEarned = Object.values(gems).filter(Boolean).length;
+                        const failsPerGem = ['gem1','gem2','gem3','gem4','gem5']
+                            .map(g => `<span style="color:#94a3b8">${g.replace('gem','Nivel ')}: ${sessionStats.levelFails[g]||0} fallo(s)</span>`)
+                            .join('<br>');
+                        showModal('¡VICTORIA ÉPICA! 🏆',
+                            `¡Has derrotado al Dragón del Overfitting!<br><br>` +
+                            `<b>⏱ Tiempo total:</b> ${mm}:${ss}<br>` +
+                            `<b>💎 Gemas:</b> ${gemsEarned}/5<br>` +
+                            `<b>❌ Intentos fallidos:</b> ${sessionStats.totalFails}<br><br>` +
+                            `${failsPerGem}`, false, null);
+                    }
+                });
             }
         } else {
             triggerScreenShake();
             const id = currentDialog.id;
-            const hw = player.w/2, hh = player.h/2;
-            const nx = player.x;
-            const ny = player.y + 35;
-            
-            const def = LEVEL_DEFS[currentLevelId];
-            let canMoveX = nx > TSIZE + hw && nx < def.mapW * TSIZE - TSIZE - hw;
-            let canMoveY = ny > TSIZE + hh && ny < def.mapH * TSIZE - TSIZE - hh;
-            
-            // Colisiones con paredes internas 3D
-            if(def.internalWalls) {
-                def.internalWalls.forEach(w => {
-                    const wx = w.c * TSIZE; const wy = w.r * TSIZE;
-                    const ww = w.w * TSIZE; const wh = w.h * TSIZE;
-                    if(nx + hw > wx && nx - hw < wx + ww && player.y + hh > wy && player.y - hh < wy + wh) canMoveX = false;
-                    if(player.x + hw > wx && player.x - hw < wx + ww && ny + hh > wy && ny - hh < wy + wh) canMoveY = false;
-                });
+
+            // En level5 no empujamos al jugador — las paredes del corredor ya son peligro suficiente
+            if(currentLevelId !== 'level5') {
+                const hw = player.w/2, hh = player.h/2;
+                const nx = player.x;
+                const ny = player.y + 35;
+
+                const def = LEVEL_DEFS[currentLevelId];
+                let canMoveX = nx > TSIZE + hw && nx < def.mapW * TSIZE - TSIZE - hw;
+                let canMoveY = ny > TSIZE + hh && ny < def.mapH * TSIZE - TSIZE - hh;
+
+                if(def.internalWalls) {
+                    def.internalWalls.forEach(w => {
+                        const wx = w.c * TSIZE; const wy = w.r * TSIZE;
+                        const ww = w.w * TSIZE; const wh = w.h * TSIZE;
+                        if(nx + hw > wx && nx - hw < wx + ww && player.y + hh > wy && player.y - hh < wy + wh) canMoveX = false;
+                        if(player.x + hw > wx && player.x - hw < wx + ww && ny + hh > wy && ny - hh < wy + wh) canMoveY = false;
+                    });
+                }
+
+                if(canMoveX) player.x = nx;
+                if(canMoveY) player.y = ny;
+
+                player.x = Math.max(TSIZE+hw, Math.min(player.x, def.mapW*TSIZE - TSIZE - hw));
+                player.y = Math.max(TSIZE+hh, Math.min(player.y, def.mapH*TSIZE - TSIZE - hh));
             }
             
-            if(canMoveX) player.x = nx;
-            if(canMoveY) player.y = ny;
-            
-            player.x = Math.max(TSIZE+hw, Math.min(player.x, def.mapW*TSIZE - TSIZE - hw));
-            player.y = Math.max(TSIZE+hh, Math.min(player.y, def.mapH*TSIZE - TSIZE - hh));
-            
             if(id) attemptCount[id] = (attemptCount[id] || 0) + 1;
-            showModal('¡INCORRECTO!', 'Tus parámetros han sido sobreajustados... Inténtalo de nuevo.', true, null);
+            sessionStats.totalFails++;
+            if(id) sessionStats.levelFails[id] = (sessionStats.levelFails[id] || 0) + 1;
+
+            // Derrota dramática si es el dragón
+            if(currentDialog.type === 'dragon') {
+                playSound('defeat');
+                dragonDefeatAnim = 1.8;
+                emitParticles(player.x, player.y, 50, ['#ef4444','#7f1d1d','#fbbf24']);
+                setTimeout(() => showModal('¡INCORRECTO!', 'El Dragón del Overfitting rugió y te derribó.<br><br>Reagrúpate e inténtalo de nuevo.', true, null), 800);
+            } else {
+                showModal('¡INCORRECTO!', 'Tus parámetros han sido sobreajustados... Inténtalo de nuevo.', true, null);
+            }
         }
     });
 }
@@ -1616,13 +2024,33 @@ function gotoLevel(id) {
 function loadLevel(id) {
     currentLevelId = id;
     const def = LEVEL_DEFS[id];
-    activeEntities = JSON.parse(JSON.stringify(def.entities)); // deep copy state
+    activeEntities = JSON.parse(JSON.stringify(def.entities));
     player.x = def.playerStart.x;
     player.y = def.playerStart.y;
     cameraX = camTargetX = Math.max(0, player.x - CW/2);
     cameraY = camTargetY = Math.max(0, player.y - CH/2);
     if(def.init) def.init();
     updateDoorLabels();
+
+    // Banner de entrada al nivel (solo en niveles numerados y dragón)
+    if(def.name && id !== 'hub') {
+        levelBanner.text = def.name;
+        levelBanner.alpha = 1;
+        levelBanner.timer = 2.4;
+    }
+
+    // Resetear timer de nivel
+    sessionStats.levelTime = 0;
+
+    // Iniciar sesión la primera vez que sales del hub
+    if(id !== 'hub' && !sessionStats.startTime) {
+        sessionStats.startTime = Date.now();
+    }
+
+    // Sonido especial al entrar a la sala del dragón
+    if(id === 'dragon') {
+        setTimeout(() => playSound('boss_enter'), 400);
+    }
 }
 
 function updateDoorLabels() {
@@ -1798,7 +2226,39 @@ function drawMap(ctx, def, scx, scy) {
 /* === MAIN LOOP === */
 let actionPressed = false;
 
+function fireProjectile(fromX, fromY, toX, toY, onHit) {
+    const dx = toX - fromX, dy = toY - fromY;
+    const d = Math.sqrt(dx*dx + dy*dy) || 1;
+    const speed = 320;
+    projectiles.push({
+        x: fromX, y: fromY,
+        vx: dx/d*speed, vy: dy/d*speed,
+        age: 0, maxAge: d/speed + 0.1,
+        onHit: onHit
+    });
+    playSound('fireball');
+}
+
+function startFromIntro() {
+    if(gameState !== 'INTRO') return;
+    initAudio();
+    switchToAmbient();
+    loadLevel('hub');
+    transitionAlpha = 1;
+    transitionPhase = 'in';
+    gameState = 'TRANSITION';
+}
+
 function update(dt) {
+    if(gameState === 'INTRO') {
+        introTime += dt;
+        introWalkTimer += dt;
+        if(introWalkTimer > 0.18) { introWalkFrame = (introWalkFrame+1)%2; introWalkTimer = 0; }
+        introWizardX += dt * 55;
+        if(introWizardX > 560) introWizardX = -80;
+        if(introTime > 1.5 && (keys.action || touches.action)) startFromIntro();
+        return;
+    }
     if(gameState === 'TRANSITION') {
         if(transitionPhase === 'out') {
             transitionAlpha += dt * 3;
@@ -1812,12 +2272,7 @@ function update(dt) {
             if(transitionAlpha <= 0) {
                 transitionAlpha = 0;
                 transitionPhase = null;
-                if(!welcomeShown) {
-                    welcomeShown = true;
-                    showModal('Reto Bayesiano', 'Presiona cualquier tecla o toca la pantalla para iniciar.<br><br>Explora las 5 salas, recupera las Gemas de la Sabiduría Bayesiana y derrota al Dragón del Overfitting.', false, null);
-                } else {
-                    gameState = 'PLAY';
-                }
+                gameState = 'PLAY';
             }
         }
         return;
@@ -1828,6 +2283,17 @@ function update(dt) {
     initAudio();
     player.update(dt);
     if(staffGlowTime > 0) staffGlowTime = Math.max(0, staffGlowTime - dt);
+
+    // Timer de nivel
+    sessionStats.levelTime += dt;
+
+    // Banner de entrada al nivel
+    if(levelBanner.timer > 0) {
+        levelBanner.timer = Math.max(0, levelBanner.timer - dt);
+    }
+
+    // Animación de derrota ante el dragón
+    if(dragonDefeatAnim > 0) dragonDefeatAnim = Math.max(0, dragonDefeatAnim - dt);
 
     const def = LEVEL_DEFS[currentLevelId];
     if(def.update) def.update(dt);
@@ -1848,10 +2314,14 @@ function update(dt) {
                     } else {
                         gotoLevel(ent.target);
                     }
+                } else if(ent.type === 'decoy_chest' && !ent.opened) {
+                    ent.opened = true;
+                    triggerScreenShake(); haptic(30);
+                    showModal('¡Cofre Vacío!', 'Este cofre no contiene nada... el verdadero tesoro está escondido en algún rincón del laberinto. ¡Sigue buscando!', true, null);
                 } else if(ent.type === 'chest' && !gems[ent.id]) {
                     currentDialog = ent;
                     showModal(ent.title, ent.text, false, ent.opts);
-                } else if(ent.type === 'dragon' && !ent.defeated) {
+                } else if(ent.type === 'dragon' && !ent.defeated && projectiles.length === 0) {
                     currentDialog = ent;
                     showModal(ent.title, ent.text, true, ent.opts);
                 }
@@ -1860,10 +2330,93 @@ function update(dt) {
     }
     if(!isAction) actionPressed = false;
 
+    // Mover proyectiles y detectar impacto
+    for(let i = projectiles.length - 1; i >= 0; i--) {
+        const proj = projectiles[i];
+        proj.x += proj.vx * dt;
+        proj.y += proj.vy * dt;
+        proj.age += dt;
+        if(proj.age >= proj.maxAge) {
+            emitParticles(proj.x, proj.y, 30, ['#ef4444','#fbbf24','#fff','#f97316']);
+            triggerScreenShake();
+            proj.onHit();
+            projectiles.splice(i, 1);
+        }
+    }
+
     updateParticles(dt);
 }
 
+function drawIntroScreen() {
+    const t = introTime;
+    ctx.fillStyle = '#050508';
+    ctx.fillRect(0, 0, CW, CH);
+
+    // Estrellas twinkling
+    INTRO_STARS.forEach(s => {
+        const alpha = 0.35 + 0.6 * Math.abs(Math.sin(t * 1.2 + s.twinkle));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), Math.ceil(s.r), Math.ceil(s.r));
+    });
+    ctx.globalAlpha = 1;
+
+    // Mago caminando por abajo
+    const wizImg = (introWalkFrame === 0 && wizardWalk1.complete) ? wizardWalk1
+                 : (wizardWalk2.complete ? wizardWalk2 : null);
+    if(wizImg) {
+        const sc = 1.8;
+        const ww = wizImg.width * sc, wh = wizImg.height * sc;
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.globalAlpha = 0.9;
+        ctx.drawImage(wizImg, Math.round(introWizardX - ww/2), Math.round(CH - 55 - wh/2), Math.round(ww), Math.round(wh));
+        ctx.restore();
+    }
+
+    // Título letra por letra
+    const TITLE = 'RPG BAYESIANO';
+    const lettersShown = Math.min(TITLE.length, Math.floor(Math.max(0, t - 0.6) / 0.08));
+    const visibleTitle = TITLE.slice(0, lettersShown);
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.font = 'bold 30px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#fbbf24';
+    ctx.shadowBlur = 16 + Math.sin(t * 3) * 6;
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText(visibleTitle, CW / 2, CH / 2 - 24);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // Subtítulo (aparece al terminar el título)
+    if(lettersShown >= TITLE.length) {
+        const delay = 0.6 + TITLE.length * 0.08 + 0.4;
+        const subAlpha = Math.min(1, (t - delay) * 2.5);
+        if(subAlpha > 0) {
+            ctx.globalAlpha = subAlpha;
+            ctx.font = '12px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#c084fc';
+            ctx.fillText('El Dragón del Overfitting te espera', CW / 2, CH / 2 + 4);
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    // "Presiona para comenzar" pulsante
+    if(t > 1.5) {
+        const pulse = 0.45 + 0.55 * Math.abs(Math.sin(t * 3.5));
+        ctx.globalAlpha = pulse;
+        ctx.font = '9px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText('[ ESPACIO / toca para comenzar ]', CW / 2, CH - 18);
+        ctx.globalAlpha = 1;
+    }
+}
+
 function draw() {
+    if(gameState === 'INTRO') { drawIntroScreen(); return; }
     const def = LEVEL_DEFS[currentLevelId];
     drawMap(ctx, def, cameraX, cameraY);
 
@@ -1877,6 +2430,8 @@ function draw() {
             player.draw(ctx, cameraX, cameraY);
         } else if(ent.type === 'chest') {
             drawChestSprite(ctx, ent.x - cameraX, ent.y - cameraY, !!gems[ent.id]);
+        } else if(ent.type === 'decoy_chest') {
+            drawChestSprite(ctx, ent.x - cameraX, ent.y - cameraY, !!ent.opened);
         } else if(ent.type === 'door') {
             const glow = Math.sin(performance.now()/200)*0.2 + 0.8;
             ctx.save();
@@ -1899,32 +2454,33 @@ function draw() {
                 renderSprite(ctx, SPRITES.dragon, ent.x - cameraX, ent.y - cameraY, ent.phase2, 2.5);
             } else {
                 const t = performance.now()/1000;
-                const bob = Math.sin(t*2.5)*8; // Animación de respiración suave
-                
+                const bob  = Math.sin(t*2.5)*8;  // Respiración vertical
+                const sway = Math.sin(t*0.8)*40;  // Patrullaje horizontal
+
                 let img = dragonIdleImg;
                 if(ent.phase2) {
                     img = dragonAttackImg;
                 } else {
-                    // Seguir al jugador con la mirada
-                    if(player.x < ent.x) img = dragonLeftImg;
+                    // Mirada sigue al jugador cuando no patrulla
+                    if(player.x < ent.x + sway) img = dragonLeftImg;
                     else img = dragonIdleImg;
                 }
-                
-                // Escalar manteniendo proporción (aprox 0.7 de su tamaño original para que sea imponente)
+
+                // Escalar manteniendo proporción
                 const scale = 0.75;
-                const dw = img.width * scale; 
+                const dw = img.width * scale;
                 const dh = img.height * scale;
-                
+
                 ctx.save();
-                // Sombra dinámica que pulsa con la respiración
+                // Sombra dinámica que sigue el patrullaje
                 const shadowW = 100 + Math.sin(t*2.5)*10;
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.beginPath(); 
-                ctx.ellipse(ent.x - cameraX, ent.y - cameraY + 20, shadowW/2, 25, 0, 0, Math.PI*2); 
+                ctx.beginPath();
+                ctx.ellipse(ent.x - cameraX + sway, ent.y - cameraY + 20, shadowW/2, 25, 0, 0, Math.PI*2);
                 ctx.fill();
-                
-                // Dibujar Dragón centrado
-                ctx.drawImage(img, ent.x - cameraX - dw/2, ent.y - cameraY - dh + 30 + bob, dw, dh);
+
+                // Dibujar Dragón con sway y bob
+                ctx.drawImage(img, ent.x - cameraX - dw/2 + sway, ent.y - cameraY - dh + 30 + bob, dw, dh);
                 
                 // Aura de calor/fuego si está en fase 2
                 if(ent.phase2) {
@@ -1963,10 +2519,12 @@ function draw() {
             }
         } else if(ent.type === 'decor') {
             let img = swordStoneImg;
-            if(ent.img === 'gargoyle') img = gargoyleImg;
+            if(ent.img === 'gargoyle')   img = gargoyleImg;
             if(ent.img === 'candelabra') img = candelabraImg;
-            if(ent.img === 'cage') img = cageImg;
-            if(ent.img === 'mushrooms') img = mushroomsImg;
+            if(ent.img === 'cage')       img = cageImg;
+            if(ent.img === 'px_cage')    img = pxCageImg;
+            if(ent.img === 'px_sword')   img = pxSwordImg;
+            if(ent.img === 'px_rocks')   img = pxRocksImg;
             if(sceneryLoaded >= 5) {
                 const w = img.width * ent.scale;
                 const h = img.height * ent.scale;
@@ -1987,14 +2545,115 @@ function draw() {
         }
     });
 
+    // Proyectiles del mago (fireballs hacia el dragón)
+    if(fireballReady && projectiles.length > 0) {
+        const fSize = 128, dSize = 38;
+        projectiles.forEach(proj => {
+            const fi = Math.floor(proj.age * 15) % 4;
+            const sx = (fi % 2) * fSize, sy = Math.floor(fi / 2) * fSize;
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;
+            ctx.globalAlpha = 0.95;
+            ctx.drawImage(fireballImg, sx, sy, fSize, fSize,
+                proj.x - cameraX - dSize/2, proj.y - cameraY - dSize/2, dSize, dSize);
+            ctx.restore();
+        });
+    }
+
     drawParticles(cameraX, cameraY);
     drawLighting(ctx, cameraX, cameraY);
+
+    // ── HUD superpuesto (sobre la iluminación, bajo la transición) ──
+
+    // 3. Checks verdes en puertas del hub (niveles completados)
+    if(currentLevelId === 'hub') {
+        const gemToLevel = { gem1:'level1', gem2:'level2', gem3:'level3', gem4:'level4', gem5:'level5' };
+        activeEntities.forEach(ent => {
+            if(ent.type !== 'door' || !ent.target) return;
+            const gemKey = Object.keys(gemToLevel).find(k => gemToLevel[k] === ent.target);
+            if(gemKey && gems[gemKey]) {
+                const sx = ent.x - cameraX, sy = ent.y - cameraY - 38;
+                ctx.save();
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = '#10b981'; ctx.shadowBlur = 8;
+                ctx.fillStyle = '#4ade80';
+                ctx.fillText('✓', sx, sy);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+        });
+    }
+
+    // 4. Timer de nivel (solo en niveles numerados, no hub)
+    if(currentLevelId !== 'hub' && gameState === 'PLAY') {
+        const mm = String(Math.floor(sessionStats.levelTime / 60)).padStart(2, '0');
+        const ss = String(Math.floor(sessionStats.levelTime % 60)).padStart(2, '0');
+        ctx.save();
+        ctx.font = '8px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(200,200,200,0.55)';
+        ctx.fillText(`⏱ ${mm}:${ss}`, CW - 6, 14);
+        ctx.restore();
+    }
+
+    // 2. Animación de derrota ante el dragón (pantalla roja pulsante)
+    if(dragonDefeatAnim > 0) {
+        const pulse = Math.abs(Math.sin(dragonDefeatAnim * 8)) * (dragonDefeatAnim / 1.8);
+        ctx.fillStyle = `rgba(180,0,0,${pulse * 0.45})`;
+        ctx.fillRect(0, 0, CW, CH);
+        if(dragonDefeatAnim > 0.9) {
+            ctx.save();
+            ctx.font = 'bold 22px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = `rgba(255,80,80,${Math.min(1, dragonDefeatAnim - 0.8) * 2})`;
+            ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
+            ctx.fillText('¡EL DRAGÓN TE DERROTA!', CW/2, CH/2);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+    }
+
+    // 7. Banner de entrada al nivel
+    if(levelBanner.alpha > 0 && levelBanner.timer > 0) {
+        const fade = levelBanner.timer < 0.5 ? levelBanner.timer / 0.5
+                   : levelBanner.timer > 2.0 ? 1
+                   : Math.min(1, (2.4 - levelBanner.timer) * 4);
+        ctx.save();
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(0, CH/2 - 22, CW, 34);
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 10;
+        ctx.fillStyle = '#fde68a';
+        ctx.fillText(levelBanner.text, CW/2, CH/2 + 4);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
 
     if(transitionAlpha > 0) {
         ctx.fillStyle = `rgba(0,0,0,${transitionAlpha})`;
         ctx.fillRect(0,0,CW,CH);
     }
-    
+
+    // Pantalla de pausa
+    if(gameState === 'PAUSED') {
+        ctx.fillStyle = 'rgba(0,0,0,0.68)';
+        ctx.fillRect(0, 0, CW, CH);
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 26px "Courier New", monospace';
+        ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 14;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillText('⏸  PAUSA', CW/2, CH/2 - 8);
+        ctx.shadowBlur = 0;
+        ctx.font = '9px "Courier New", monospace';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('[ ESC · P para continuar ]', CW/2, CH/2 + 12);
+        ctx.restore();
+    }
+
     positionLabels(cameraX, cameraY);
 }
 
