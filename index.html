@@ -790,8 +790,8 @@
       <!-- transition box removed -->
     </section>
 
-    <section class="slide" id="s4">
-      <div class="stag">Problema · Datos Agrupados</div>
+    <section class="slide" id="s4" style="background:radial-gradient(ellipse at 85% 8%, rgba(251,146,60,.10) 0%, transparent 52%)">
+      <div class="stag" style="color:rgba(251,186,114,.80)">Problema · Datos Agrupados</div>
       <h2 class="gh2">Turismo colombiano: 15 personas, 3 ciudades</h2>
       <p class="lead mt-3">Cada observación mide días de estadía y gasto total en USD. La pregunta estadística aparece
         apenas miramos los colores: los turistas no viven en el vacío, están agrupados por ciudad.</p>
@@ -840,32 +840,33 @@
       <!-- transition box removed -->
     </section>
 
-    <section class="slide" id="s5">
-      <div class="stag">Comparación · Tres Modelos</div>
+    <section class="slide" id="s5" style="background:radial-gradient(ellipse at 15% 8%, rgba(168,85,247,.09) 0%, transparent 52%)">
+      <div class="stag" style="color:rgba(196,181,253,.80)">Comparación · Tres Modelos</div>
       <h2 class="gh2">Complete vs No vs Partial pooling</h2>
       <p class="lead mt-3">Mismos datos, tres respuestas. La diferencia no es estética: cambia el sesgo, la varianza y
         la capacidad de generalizar.</p>
 
       <div class="grid-3 mt-6" style="align-items:stretch">
-        <div class="card">
-          <div class="label">Complete pooling</div>
-          <p class="muted" style="margin-top:6px;line-height:1.45">Ignora ciudades. Ajusta una sola recta.</p>
-          <div class="ch mt-4" style="height:250px" data-title="Complete pooling: una recta para todos"><canvas
+        <div class="card" style="border-left:4px solid rgba(148,163,184,.65)">
+          <div class="label" style="color:rgba(148,163,184,.9)">Complete pooling</div>
+          <p class="muted" style="margin-top:6px;line-height:1.45">Ignora ciudades. Ajusta una sola recta para todos.</p>
+          <div class="ch mt-4" style="height:220px" data-title="Complete pooling: una recta para todos"><canvas
               id="ch-pool-comp-1"></canvas></div>
+          <div style="margin-top:10px;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(148,163,184,.65);border:1px solid rgba(148,163,184,.25);border-radius:4px;padding:3px 8px;display:inline-block">&#9888; Sesgo alto · ignora grupos</div>
         </div>
-        <div class="card">
-          <div class="label">No pooling</div>
-          <p class="muted" style="margin-top:6px;line-height:1.45">Una recta por ciudad. Con $n=5$, queda muy ruidoso.
-          </p>
-          <div class="ch mt-4" style="height:250px" data-title="No pooling: tres rectas independientes"><canvas
+        <div class="card" style="border-left:4px solid rgba(239,68,68,.55)">
+          <div class="label" style="color:rgba(252,165,165,.9)">No pooling</div>
+          <p class="muted" style="margin-top:6px;line-height:1.45">Una recta independiente por ciudad. Con $n=5$, muy ruidoso.</p>
+          <div class="ch mt-4" style="height:220px" data-title="No pooling: tres rectas independientes"><canvas
               id="ch-pool-comp-2"></canvas></div>
+          <div style="margin-top:10px;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(252,165,165,.65);border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:3px 8px;display:inline-block">&#9888; Varianza alta · sobreajuste</div>
         </div>
-        <div class="card" style="border-color:rgba(52,211,153,.18)">
-          <div class="label">Partial pooling</div>
-          <p class="muted" style="margin-top:6px;line-height:1.45">Tres rectas que aprenden unas de otras. Se “jalan”
-            hacia una tendencia común.</p>
-          <div class="ch mt-4" style="height:250px" data-title="Partial pooling: rectas contraídas"><canvas
+        <div class="card" style="border-left:4px solid rgba(52,211,153,.65);background:rgba(52,211,153,.04)">
+          <div class="label" style="color:rgba(110,231,183,.95)">Partial pooling &#10003;</div>
+          <p class="muted" style="margin-top:6px;line-height:1.45">Tres rectas que aprenden unas de otras, jaladas hacia la media global.</p>
+          <div class="ch mt-4" style="height:220px" data-title="Partial pooling: rectas contraídas"><canvas
               id="ch-pool-comp-3"></canvas></div>
+          <div style="margin-top:10px;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(110,231,183,.75);border:1px solid rgba(52,211,153,.35);border-radius:4px;padding:3px 8px;display:inline-block">&#10003; Equilibrio sesgo&#8211;varianza</div>
         </div>
       </div>
 
