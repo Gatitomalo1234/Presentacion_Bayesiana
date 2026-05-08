@@ -790,8 +790,8 @@
       <!-- transition box removed -->
     </section>
 
-    <section class="slide" id="s4" style="background:radial-gradient(ellipse at 85% 8%, rgba(251,146,60,.10) 0%, transparent 52%)">
-      <div class="stag" style="color:rgba(251,186,114,.80)">Problema · Datos Agrupados</div>
+    <section class="slide" id="s4">
+      <div class="stag">Problema · Datos Agrupados</div>
       <h2 class="gh2">Turismo colombiano: 15 personas, 3 ciudades</h2>
       <p class="lead mt-3">Cada observación mide días de estadía y gasto total en USD. La pregunta estadística aparece
         apenas miramos los colores: los turistas no viven en el vacío, están agrupados por ciudad.</p>
@@ -811,19 +811,19 @@
                 <td><span class="badge o">Cartagena</span></td>
                 <td>5</td>
                 <td>5.0</td>
-                <td>680 USD</td>
+                <td>1 080 USD</td>
               </tr>
               <tr>
                 <td><span class="badge b">Medellín</span></td>
                 <td>5</td>
                 <td>4.0</td>
-                <td>568 USD</td>
+                <td>364 USD</td>
               </tr>
               <tr>
                 <td><span class="badge g">Bogotá</span></td>
                 <td>5</td>
                 <td>4.0</td>
-                <td>590 USD</td>
+                <td>568 USD</td>
               </tr>
             </tbody>
           </table>
@@ -840,33 +840,32 @@
       <!-- transition box removed -->
     </section>
 
-    <section class="slide" id="s5" style="background:radial-gradient(ellipse at 15% 8%, rgba(168,85,247,.09) 0%, transparent 52%)">
-      <div class="stag" style="color:rgba(196,181,253,.80)">Comparación · Tres Modelos</div>
+    <section class="slide" id="s5">
+      <div class="stag">Comparación · Tres Modelos</div>
       <h2 class="gh2">Complete vs No vs Partial pooling</h2>
       <p class="lead mt-3">Mismos datos, tres respuestas. La diferencia no es estética: cambia el sesgo, la varianza y
         la capacidad de generalizar.</p>
 
       <div class="grid-3 mt-6" style="align-items:stretch">
-        <div class="card" style="border-left:4px solid rgba(148,163,184,.65)">
-          <div class="label" style="color:rgba(148,163,184,.9)">Complete pooling</div>
-          <p class="muted" style="margin-top:6px;line-height:1.45">Ignora ciudades. Ajusta una sola recta para todos.</p>
-          <div class="ch mt-4" style="height:220px" data-title="Complete pooling: una recta para todos"><canvas
+        <div class="card">
+          <div class="label">Complete pooling</div>
+          <p class="muted" style="margin-top:6px;line-height:1.45">Ignora ciudades. Ajusta una sola recta.</p>
+          <div class="ch mt-4" style="height:250px" data-title="Complete pooling: una recta para todos"><canvas
               id="ch-pool-comp-1"></canvas></div>
-          <div style="margin-top:10px;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(148,163,184,.65);border:1px solid rgba(148,163,184,.25);border-radius:4px;padding:3px 8px;display:inline-block">&#9888; Sesgo alto · ignora grupos</div>
         </div>
-        <div class="card" style="border-left:4px solid rgba(239,68,68,.55)">
-          <div class="label" style="color:rgba(252,165,165,.9)">No pooling</div>
-          <p class="muted" style="margin-top:6px;line-height:1.45">Una recta independiente por ciudad. Con $n=5$, muy ruidoso.</p>
-          <div class="ch mt-4" style="height:220px" data-title="No pooling: tres rectas independientes"><canvas
+        <div class="card">
+          <div class="label">No pooling</div>
+          <p class="muted" style="margin-top:6px;line-height:1.45">Una recta por ciudad. Con $n=5$, queda muy ruidoso.
+          </p>
+          <div class="ch mt-4" style="height:250px" data-title="No pooling: tres rectas independientes"><canvas
               id="ch-pool-comp-2"></canvas></div>
-          <div style="margin-top:10px;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(252,165,165,.65);border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:3px 8px;display:inline-block">&#9888; Varianza alta · sobreajuste</div>
         </div>
-        <div class="card" style="border-left:4px solid rgba(52,211,153,.65);background:rgba(52,211,153,.04)">
-          <div class="label" style="color:rgba(110,231,183,.95)">Partial pooling &#10003;</div>
-          <p class="muted" style="margin-top:6px;line-height:1.45">Tres rectas que aprenden unas de otras, jaladas hacia la media global.</p>
-          <div class="ch mt-4" style="height:220px" data-title="Partial pooling: rectas contraídas"><canvas
+        <div class="card" style="border-color:rgba(52,211,153,.18)">
+          <div class="label">Partial pooling</div>
+          <p class="muted" style="margin-top:6px;line-height:1.45">Tres rectas que aprenden unas de otras. Se "jalan"
+            hacia una tendencia común.</p>
+          <div class="ch mt-4" style="height:250px" data-title="Partial pooling: rectas contraídas"><canvas
               id="ch-pool-comp-3"></canvas></div>
-          <div style="margin-top:10px;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(110,231,183,.75);border:1px solid rgba(52,211,153,.35);border-radius:4px;padding:3px 8px;display:inline-block">&#10003; Equilibrio sesgo&#8211;varianza</div>
         </div>
       </div>
 
@@ -1875,15 +1874,15 @@
     const baseOptions = { responsive: true, maintainAspectRatio: false, animation: { duration: 420 }, plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: 'rgba(5,6,8,.95)', titleColor: '#eef3ec', bodyColor: '#d9e5dd', borderColor: 'rgba(238,243,236,.18)', borderWidth: 1 } }, scales: { x: { ticks: { color: 'rgba(238,243,236,.48)' }, grid: { color: 'rgba(238,243,236,.07)' }, border: { display: false } }, y: { ticks: { color: 'rgba(238,243,236,.48)' }, grid: { color: 'rgba(238,243,236,.07)' }, border: { display: false } } } };
     const charts = {}, inited = new Set();
     const cityData = [
-      { city: 'Cartagena', color: C.orange + '0.9)', days: [3, 5, 4, 6, 7], gasto: [520, 680, 590, 760, 850], a: 280, b: 80, ap: 295, bp: 76 },
-      { city: 'Medellín', color: C.blue + '0.9)', days: [2, 4, 3, 5, 6], gasto: [380, 560, 440, 680, 780], a: 180, b: 100, ap: 198, bp: 96 },
-      { city: 'Bogotá', color: C.green + '0.9)', days: [1, 3, 5, 7, 4], gasto: [320, 500, 680, 860, 590], a: 230, b: 90, ap: 230, bp: 90 }
+      { city: 'Cartagena', color: C.orange + '0.9)', days: [3, 4, 5, 6, 7], gasto: [730, 900, 1080, 1260, 1430], a: 200, b: 176, ap: 230, bp: 140 },
+      { city: 'Medellín',  color: C.blue   + '0.9)', days: [2, 3, 4, 5, 6], gasto: [260, 310,  370,  420,  460], a: 160, b:  51, ap: 205, bp:  64 },
+      { city: 'Bogotá',    color: C.green  + '0.9)', days: [2, 3, 4, 5, 6], gasto: [580, 450,  620,  510,  680], a: 464, b:  26, ap: 390, bp:  48 }
     ];
     const allPoints = cityData.flatMap(c => c.days.map((d, i) => ({ x: d, y: c.gasto[i], city: c.city })));
     function mk(id, type, data, options = {}) { const el = document.getElementById(id); if (!el || charts[id]) return; charts[id] = new Chart(el, { type, data, options: { ...baseOptions, ...options, plugins: { ...baseOptions.plugins, ...(options.plugins || {}) }, scales: { ...baseOptions.scales, ...(options.scales || {}) } } }); const wrap = el.closest('.ch'); if (wrap) wrap.addEventListener('click', () => openModal(id, wrap.dataset.title || id)) }
     function line(a, b, color, label, dash) { return { type: 'line', label, data: [{ x: 1, y: a + b }, { x: 7, y: a + 7 * b }], borderColor: color, borderWidth: 2.6, pointRadius: 0, tension: 0, borderDash: dash || [] } }
     function scatterDs() { return cityData.map(c => ({ label: c.city, data: c.days.map((d, i) => ({ x: d, y: c.gasto[i] })), backgroundColor: c.color, borderColor: c.color, pointRadius: 5.5 })) }
-    function axes() { return { x: { type: 'linear', min: .5, max: 7.5, title: { display: true, text: 'días', color: 'rgba(238,243,236,.5)' } }, y: { min: 250, max: 900, title: { display: true, text: 'gasto USD', color: 'rgba(238,243,236,.5)' } } } }
+    function axes() { return { x: { type: 'linear', min: .5, max: 8, title: { display: true, text: 'días', color: 'rgba(238,243,236,.5)' } }, y: { min: 150, max: 1500, title: { display: true, text: 'gasto USD', color: 'rgba(238,243,236,.5)' } } } }
     function nPdf(x, m, s) { return Math.exp(-.5 * ((x - m) / s) ** 2) / (s * Math.sqrt(2 * Math.PI)) }
     function linspace(a, b, n) { return Array.from({ length: n }, (_, i) => a + (b - a) * i / (n - 1)) }
 
@@ -1893,7 +1892,7 @@
         mk('ch-scatter', 'scatter', { datasets: scatterDs() }, { scales: axes(), plugins: { legend: { display: true, labels: { color: 'rgba(238,243,236,.65)', boxWidth: 10 } } } });
       }
       if (idx === 4) {
-        const pooledA = 230, pooledB = 90;
+        const pooledA = 77, pooledB = 137;
         mk('ch-pool-comp-1', 'scatter', { datasets: [...scatterDs(), line(pooledA, pooledB, C.pink + '0.95)', 'Complete')] }, { scales: axes(), plugins: { legend: { display: false } } });
         mk('ch-pool-comp-2', 'scatter', { datasets: [...scatterDs(), ...cityData.map(c => line(c.a, c.b, c.color, c.city))] }, { scales: axes(), plugins: { legend: { display: false } } });
         mk('ch-pool-comp-3', 'scatter', { datasets: [...scatterDs(), line(pooledA, pooledB, C.paper + '0.28)', 'Global', [7, 6]), ...cityData.map(c => line(c.ap, c.bp, c.color, c.city))] }, { scales: axes(), plugins: { legend: { display: false } } });
